@@ -1,5 +1,7 @@
 {
 	"private": true,
+	"license": "MIT",
+	"author": "almostJohn <garcia.johngale@gmail.com>",
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "next build",
