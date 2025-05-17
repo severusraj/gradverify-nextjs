@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,35 +16,38 @@ const initialState = {
 };
 
 export function RegisterForm() {
+	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
-
-	const [state, formAction] = useActionState(register, initialState);
+	const [state, setState] = useState(initialState);
 
 	useEffect(() => {
 		if (state.success) {
-			toast.success("Email successfully sent.");
+			toast.success("Account created successfully. Please check your email for verification.");
+			router.push("/verify-email");
 		} else if (state.message) {
 			toast.error(state.message);
 		}
-	}, [state]);
+	}, [state, router]);
+
+	async function handleRegister(formData: FormData) {
+		startTransition(async () => {
+			const result = await register(formData);
+			setState(result);
+		});
+	}
 
 	return (
 		<form
-			action={(formData) => {
-				startTransition(() => {
-					formAction(formData);
-				});
-			}}
+			action={handleRegister}
 			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"
 		>
 			<div className="flex flex-col space-y-4">
 				<div className="flex flex-col space-y-2">
 					<h1 className="text-lg font-bold leading-snug text-center">
-						Register an account
+						Create Student Account
 					</h1>
 					<p className="text-center text-sm text-muted-foreground">
-						To register an account, kindly complete the form below and submit it
-						via email.
+						Fill out the form below to create your student account.
 					</p>
 				</div>
 				<div className="flex flex-col space-y-3">
@@ -72,40 +76,34 @@ export function RegisterForm() {
 						/>
 					</div>
 					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="role">
-							Role <span className="text-red-500">*</span>
+						<Label htmlFor="password">
+							Password <span className="text-red-500">*</span>
 						</Label>
-						<select
-							name="role"
-							id="role"
-							className="inline-flex px-3 items-center justify-between h-10 rounded-md border bg-background text-sm font-medium transition-all appearance-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+						<Input
+							id="password"
+							name="password"
+							type="password"
 							required
-						>
-							<option value="">Select your role</option>
-							<option value="STUDENT">Student</option>
-							<option value="ADMIN">Admin</option>
-						</select>
+							className="transition-all h-10"
+						/>
 					</div>
-
-					<div className="flex flex-col space-y-2">
-						<Button type="submit" className="w-full h-10">
-							{isPending ? (
-								<>
-									<Loader2Icon className="size-4 animate-spin" /> Sending...
-								</>
-							) : (
-								<>Send Email</>
-							)}
-						</Button>
-						<div className="flex items-center justify-center text-center text-sm gap-1.5">
-							<p>Already have an account?</p>
-							<Link
-								href="/login"
-								className="text-blue-500 underline font-medium"
-							>
-								Login Now
-							</Link>
-						</div>
+					<Button type="submit" className="w-full h-10">
+						{isPending ? (
+							<>
+								<Loader2Icon className="size-4 animate-spin" /> Creating account...
+							</>
+						) : (
+							<>Create Account</>
+						)}
+					</Button>
+					<div className="flex items-center justify-center text-center text-sm gap-1.5">
+						<p>Already have an account?</p>
+						<Link
+							href="/login"
+							className="text-blue-500 underline font-medium"
+						>
+							Login Now
+						</Link>
 					</div>
 				</div>
 			</div>

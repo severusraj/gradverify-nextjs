@@ -13,6 +13,7 @@ import { Loader2Icon } from "lucide-react";
 const initialState = {
 	success: false,
 	message: "",
+	role: "",
 };
 
 export function LoginForm() {
@@ -25,7 +26,23 @@ export function LoginForm() {
 	useEffect(() => {
 		if (state.success) {
 			toast.success("Login successful.");
-			router.push("/dashboard");
+			// Redirect based on role
+			switch (state.role) {
+				case "SUPER_ADMIN":
+					router.push("/superadmin");
+					break;
+				case "ADMIN":
+					router.push("/admin");
+					break;
+				case "FACULTY":
+					router.push("/faculty");
+					break;
+				case "STUDENT":
+					router.push("/student");
+					break;
+				default:
+					router.push("/dashboard");
+			}
 		} else if (state.message) {
 			toast.error(state.message);
 		}
@@ -58,21 +75,6 @@ export function LoginForm() {
 						/>
 					</div>
 					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="role">
-							Role <span className="text-red-500">*</span>
-						</Label>
-						<select
-							name="role"
-							id="role"
-							className="inline-flex px-3 items-center justify-between h-10 rounded-md border bg-background text-sm font-medium transition-all appearance-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-							required
-						>
-							<option value="">Select your role</option>
-							<option value="STUDENT">Student</option>
-							<option value="ADMIN">Admin</option>
-						</select>
-					</div>
-					<div className="flex flex-col space-y-1.5">
 						<Label htmlFor="password">
 							Password <span className="text-red-500">*</span>
 						</Label>
@@ -84,25 +86,23 @@ export function LoginForm() {
 							className="transition-all h-10"
 						/>
 					</div>
-					<div className="flex flex-col space-y-2">
-						<Button type="submit" className="w-full h-10">
-							{isPending ? (
-								<>
-									<Loader2Icon className="size-4 animate-spin" /> Logging in...
-								</>
-							) : (
-								<>Login</>
-							)}
-						</Button>
-						<div className="flex items-center justify-center text-center text-sm gap-1.5">
-							<p>Don&apos;t have an account?</p>
-							<Link
-								href="/register"
-								className="text-blue-500 underline font-medium"
-							>
-								Register Now
-							</Link>
-						</div>
+					<Button type="submit" className="w-full h-10">
+						{isPending ? (
+							<>
+								<Loader2Icon className="size-4 animate-spin" /> Logging in...
+							</>
+						) : (
+							<>Login</>
+						)}
+					</Button>
+					<div className="flex items-center justify-center text-center text-sm gap-1.5">
+						<p>Don&apos;t have an account?</p>
+						<Link
+							href="/register"
+							className="text-blue-500 underline font-medium"
+						>
+							Register Now
+						</Link>
 					</div>
 				</div>
 			</div>

@@ -1,12 +1,24 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import { LoginForm } from "@/components/forms/login-form";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
-export const metadata: Metadata = {
-	title: "Login",
-};
 
 export default function LoginPage() {
+	const searchParams = useSearchParams();
+
+	useEffect(() => {
+		const verified = searchParams.get("verified");
+		if (verified === "success") {
+			toast.success("Your email has been verified! You can now log in.");
+		} else if (verified === "error") {
+			toast.error("Verification link expired or invalid. Please log in or request a new verification email.");
+		}
+	}, [searchParams]);
+
 	return (
 		<div className="mx-auto max-w-3xl px-8 md:px-0 pt-8 pb-10 h-screen w-screen flex flex-col items-center justify-center gap-4">
 			<LoginForm />

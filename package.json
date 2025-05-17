@@ -19,8 +19,11 @@
 		"@radix-ui/react-tabs": "^1.1.11",
 		"@react-email/components": "^0.0.41",
 		"bcrypt": "^6.0.0",
+		"bcryptjs": "^3.0.2",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"date-fns": "^4.1.0",
+		"date-fns-tz": "^3.2.0",
 		"jose": "^6.0.11",
 		"lucide-react": "^0.511.0",
 		"next": "15.3.2",
@@ -29,7 +32,8 @@
 		"react-dom": "^19.0.0",
 		"resend": "^4.5.1",
 		"sonner": "^2.0.3",
-		"tailwind-merge": "^3.3.0"
+		"tailwind-merge": "^3.3.0",
+		"zod": "^3.24.4"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
@@ -41,6 +45,7 @@
 		"eslint": "^9",
 		"eslint-config-next": "15.3.2",
 		"tailwindcss": "^4",
+		"ts-node": "^10.9.2",
 		"tsx": "^4.19.4",
 		"tw-animate-css": "^1.3.0",
 		"typescript": "^5"

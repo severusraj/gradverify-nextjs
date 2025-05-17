@@ -15,16 +15,31 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(STUDENT)
+  emailVerified DateTime?
+  resendCount   Int       @default(0)
+  lastResendAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  verificationTokens VerificationToken[]
 
   submissions Submission[]
   feedbacks   Feedback[]
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Submission {
@@ -54,6 +69,7 @@ model Feedback {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  FACULTY
   STUDENT
 }
 

@@ -7,11 +7,8 @@ import { signAuthToken, setAuthCookie } from "@/lib/auth";
 type ResponseResult = {
 	success: boolean;
 	message: string;
+	role?: string;
 };
-
-const ALLOWED_ROLES = ["STUDENT", "ADMIN"] as const;
-
-type AllowedRoles = (typeof ALLOWED_ROLES)[number];
 
 export async function loginUser(
 	_prevState: ResponseResult,
@@ -20,26 +17,17 @@ export async function loginUser(
 	try {
 		const email = formData.get("email") as string;
 		const password = formData.get("password") as string;
-		const role = formData.get("role") as string;
 
-		if (!email || !password || !role) {
+		if (!email || !password) {
 			return {
 				success: false,
 				message: "All fields are required.",
 			};
 		}
 
-		if (!ALLOWED_ROLES.includes(role as AllowedRoles)) {
-			return {
-				success: false,
-				message: "Invalid role selected.",
-			};
-		}
-
 		const user = await prisma.user.findUnique({
 			where: {
 				email,
-				role: role as AllowedRoles,
 			},
 		});
 
@@ -47,6 +35,13 @@ export async function loginUser(
 			return {
 				success: false,
 				message: "Invalid email or password.",
+			};
+		}
+
+		if (!user.emailVerified) {
+			return {
+				success: false,
+				message: "Please verify your email before logging in.",
 			};
 		}
 
@@ -69,6 +64,7 @@ export async function loginUser(
 		return {
 			success: true,
 			message: "Login successful.",
+			role: user.role,
 		};
 	} catch (error_) {
 		const error = error_ as Error;

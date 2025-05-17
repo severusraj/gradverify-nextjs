@@ -7,7 +7,7 @@ const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 export type AuthPayload = {
 	id: string;
 	email: string;
-	role: "STUDENT" | "ADMIN" | "SUPER_ADMIN";
+	role: "STUDENT" | "ADMIN" | "SUPER_ADMIN" | "FACULTY";
 };
 
 export async function signAuthToken(payload: AuthPayload) {

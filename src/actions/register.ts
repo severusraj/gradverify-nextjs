@@ -1,50 +1,93 @@
 "use server";
 
-import { Resend } from "resend";
-import { revalidatePath } from "next/cache";
-import { EmailToGradVerify } from "@/components/email-component";
+import { z } from "zod";
+import { hash } from "bcryptjs";
+import { db } from "@/lib/db";
+import { sendVerificationEmail } from "@/lib/mail";
+import { generateVerificationToken } from "@/lib/tokens";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const registerSchema = z.object({
+	name: z.string().min(1, "Name is required"),
+	email: z.string().email("Invalid email address"),
+	password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
-type ResponseResult = {
-	success: boolean;
-	message: string;
-};
-
-type Role = "ADMIN" | "STUDENT";
-
-export async function register(
-	_prevState: ResponseResult,
-	formData: FormData,
-): Promise<ResponseResult> {
+export async function register(formData: FormData) {
 	try {
-		const email = formData.get("email") as string;
-		const name = formData.get("name") as string;
-		const role = formData.get("role") as string;
+		const validatedFields = registerSchema.safeParse({
+			name: formData.get("name"),
+			email: formData.get("email"),
+			password: formData.get("password"),
+		});
 
-		if (!email || !name || !role) {
+		if (!validatedFields.success) {
 			return {
 				success: false,
-				message: "All fields are required.",
+				message: "Invalid form data",
 			};
 		}
 
-		await resend.emails.send({
-			from: `${email} <onboarding@resend.dev>`,
-			to: process.env.EMAIL_TO!,
-			subject: `${email} (${name}) sends an email.`,
-			react: EmailToGradVerify({ name, email, role: role as Role }),
+		const { name, email, password } = validatedFields.data;
+
+		// Check if user already exists
+		const existingUser = await db.user.findUnique({
+			where: { email },
 		});
 
-		revalidatePath("/register");
+		if (existingUser) {
+			if (!existingUser.emailVerified) {
+				// Resend verification email
+				const verificationToken = await generateVerificationToken(existingUser.id);
+				await sendVerificationEmail(existingUser.email, verificationToken.token, verificationToken.expires);
+				return {
+					success: false,
+					message: "This email is already registered but unverified. Check your inbox or resend the verification link.",
+				};
+			}
+			return {
+				success: false,
+				message: "User with this email already exists",
+			};
+		}
 
-		return {
-			success: true,
-			message: "Email successfully sent.",
-		};
-	} catch (error_) {
-		const error = error_ as Error;
-		console.error(error.message, error);
+		// Hash password
+		const hashedPassword = await hash(password, 12);
+
+		// Create user
+		const user = await db.user.create({
+			data: {
+				name,
+				email,
+				password: hashedPassword,
+				role: "STUDENT",
+			},
+		});
+
+		try {
+			// Generate verification token
+			const verificationToken = await generateVerificationToken(user.id);
+
+			// Send verification email
+			await sendVerificationEmail(user.email, verificationToken.token, verificationToken.expires);
+
+			return {
+				success: true,
+				message: "Account created successfully",
+			};
+		} catch (emailError) {
+			// If email sending fails, delete the user and return error
+			await db.user.delete({
+				where: { id: user.id },
+			});
+			
+			console.error("Email verification error:", emailError);
+			return {
+				success: false,
+				message: "Failed to send verification email. Please try again.",
+			};
+		}
+	} catch (error) {
+		console.error("Registration error:", error);
 		return {
 			success: false,
 			message: "Something went wrong. Please try again.",
