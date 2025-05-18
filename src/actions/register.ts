@@ -31,7 +31,7 @@ export async function register(
 
 		await resend.emails.send({
 			from: `${email} <onboarding@resend.dev>`,
-			to: "garcia.johngale@gmail.com",
+			to: process.env.EMAIL_TO!,
 			subject: `${email} (${name}) sends an email.`,
 			react: EmailToGradVerify({ name, email, role: role as Role }),
 		});
