@@ -1,7 +1,7 @@
 import { prisma } from "@/db/prisma";
 import bcrypt from "bcrypt";
 import { Resend } from "resend";
-import { EmailFromGradVerify } from "@/components/email-component";
+import { LoginInfoMessage } from "@/components/mail/login-info-message";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -40,7 +40,7 @@ export async function createSuperUser({
 			from: "GradVerify <onboarding@resend.dev>",
 			to: newUser.email,
 			subject: `Welcome to GradVerify! ${newUser.name}`,
-			react: EmailFromGradVerify({
+			react: LoginInfoMessage({
 				email: newUser.email,
 				originalPassword: password,
 				hashedPassword: newUser.password,

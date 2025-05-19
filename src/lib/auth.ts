@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { REQUEST_COOKIES_NAME } from "./check-auth";
+import { SESSION_TOKEN } from "./constants";
 
 const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 
@@ -40,7 +40,7 @@ export async function verifyAuthToken<T>(token: string): Promise<T> {
 export async function setAuthCookie(token: string) {
 	try {
 		const cookieStore = await cookies();
-		cookieStore.set(REQUEST_COOKIES_NAME, token, {
+		cookieStore.set(SESSION_TOKEN, token, {
 			httpOnly: true,
 			sameSite: "lax",
 			secure: process.env.NODE_ENV === "production",
@@ -56,14 +56,14 @@ export async function setAuthCookie(token: string) {
 
 export async function getAuthCookie() {
 	const cookieStore = await cookies();
-	const token = cookieStore.get(REQUEST_COOKIES_NAME);
+	const token = cookieStore.get(SESSION_TOKEN);
 	return token?.value;
 }
 
 export async function removeAuthCookie() {
 	try {
 		const cookieStore = await cookies();
-		cookieStore.delete(REQUEST_COOKIES_NAME);
+		cookieStore.delete(SESSION_TOKEN);
 	} catch (error_) {
 		const error = error_ as Error;
 		console.error(error.message, error);

@@ -11,17 +11,17 @@ import {
 	Link,
 } from "@react-email/components";
 
-type EmailFromGradVerifyProps = {
+type LoginInfoMessageProps = {
 	email: string;
 	originalPassword: string;
 	hashedPassword: string;
 };
 
-export function EmailFromGradVerify({
+export function LoginInfoMessage({
 	email,
 	originalPassword,
 	hashedPassword,
-}: EmailFromGradVerifyProps) {
+}: LoginInfoMessageProps) {
 	return (
 		<Html>
 			<Head />
@@ -65,66 +65,6 @@ export function EmailFromGradVerify({
 							style={button}
 						>
 							Login Now
-						</Link>
-					</Section>
-				</Container>
-			</Body>
-		</Html>
-	);
-}
-
-type EmailToGradVerifyProps = {
-	name: string;
-	email: string;
-	role: "ADMIN" | "STUDENT";
-};
-
-export function EmailToGradVerify({
-	name,
-	email,
-	role,
-}: EmailToGradVerifyProps) {
-	return (
-		<Html>
-			<Head />
-			<Preview>
-				{name} is requesting a {role} account on GradVerify
-			</Preview>
-			<Body style={main}>
-				<Container style={container}>
-					<Heading as="h2" style={heading}>
-						📩 Account Creation Request
-					</Heading>
-
-					<Text style={text}>
-						The following user has requested account creation with the{" "}
-						<strong>{role}</strong> role:
-					</Text>
-
-					<Section style={infoBox}>
-						<Text style={label}>👤 Full Name:</Text>
-						<Text style={value}>{name}</Text>
-
-						<Text style={label}>📧 Email:</Text>
-						<Text style={value}>{email}</Text>
-
-						<Text style={label}>🎓 Requested Role:</Text>
-						<Text style={value}>{role}</Text>
-					</Section>
-
-					<Text style={text}>
-						They have acknowledged reading the Terms of Service and Privacy
-						Policy for account creation.
-					</Text>
-
-					<Section style={ctaWrapper}>
-						<Link
-							href="http://localhost:3000/login"
-							target="_blank"
-							rel="noreferrer"
-							style={button}
-						>
-							Review Request
 						</Link>
 					</Section>
 				</Container>

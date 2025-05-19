@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/vitest/
 
 # next.js
 /.next/
@@ -40,3 +41,6 @@ src/generated
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# script
+scripts/

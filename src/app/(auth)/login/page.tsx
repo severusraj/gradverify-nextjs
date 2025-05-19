@@ -1,11 +1,13 @@
-"use client";
-
 import Link from "next/link";
 import { LoginForm } from "@/components/forms/login-form";
 
+export const metadata = {
+	title: "Login",
+};
+
 export default function LoginPage() {
 	return (
-		<div className="mx-auto max-w-3xl px-8 md:px-0 pt-8 pb-10 h-screen w-screen flex flex-col items-center justify-center gap-4">
+		<div className="mx-auto max-w-3xl px-8 md:px-0 h-screen w-screen flex flex-col items-center justify-center gap-4">
 			<LoginForm />
 			<div className="flex items-center justify-center text-center">
 				<p className="text-sm">
