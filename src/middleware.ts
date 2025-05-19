@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSessionUser, type AuthPayload } from "./lib/auth";
+import { getSessionUserWithStatus, type AuthPayload } from "./lib/auth";
+import { SESSION_TOKEN } from "./lib/constants";
 
 const roleRoutes = {
 	"/dashboard/superadmin": "SUPER_ADMIN",
@@ -12,8 +13,15 @@ const authRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
-	const user = await getSessionUser<AuthPayload>();
+	const { user, invalidToken } = await getSessionUserWithStatus<AuthPayload>();
 	const isAuthenticated = !!user;
+
+	// Force logout on invalid token
+	if (invalidToken) {
+		const response = NextResponse.redirect(new URL("/login", request.url));
+		response.cookies.delete(SESSION_TOKEN);
+		return response;
+	}
 
 	if (authRoutes.includes(pathname)) {
 		if (isAuthenticated) {
