@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
-
-export const REQUEST_COOKIES_NAME = "session_token";
+import { SESSION_TOKEN } from "./constants";
 
 export function checkAuth(request: NextRequest) {
-	const token = request.cookies.get(REQUEST_COOKIES_NAME)?.value;
+	const token = request.cookies.get(SESSION_TOKEN)?.value;
 	return !!token;
 }

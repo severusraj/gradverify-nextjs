@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useTransition, useEffect } from "react";
+import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { loginUser } from "@/actions/login-user";
-import { Loader2Icon } from "lucide-react";
+import { loginUser } from "@/actions/auth.actions";
 
 const initialState = {
 	success: false,
 	message: "",
-	role: "",
+	role: undefined,
 };
 
 export function LoginForm() {
@@ -29,16 +29,16 @@ export function LoginForm() {
 			// Redirect based on role
 			switch (state.role) {
 				case "SUPER_ADMIN":
-					router.push("/superadmin");
+					router.push("/dashboard/superadmin");
 					break;
 				case "ADMIN":
-					router.push("/admin");
+					router.push("/dashboard/admin");
 					break;
 				case "FACULTY":
-					router.push("/faculty");
+					router.push("/dashboard/faculty");
 					break;
 				case "STUDENT":
-					router.push("/student");
+					router.push("/dashboard/student");
 					break;
 				default:
 					router.push("/dashboard");
@@ -58,9 +58,14 @@ export function LoginForm() {
 			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"
 		>
 			<div className="flex flex-col space-y-4">
-				<h1 className="text-lg font-bold leading-snug text-center">
-					Login to continue
-				</h1>
+				<div className="flex flex-col justify-center text-center space-y-1.5">
+					<h1 className="text-lg font-bold leading-snug">
+						Continue with Grad<span className="text-blue-500">Verify</span>
+					</h1>
+					<p className="text-sm text-muted-foreground">
+						Proceed with your created student account.
+					</p>
+				</div>
 				<div className="flex flex-col space-y-3">
 					<div className="flex flex-col space-y-1.5">
 						<Label htmlFor="email">

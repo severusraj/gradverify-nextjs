@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
-import { logoutUser } from "@/actions/logout-user";
+import { logoutUser } from "@/actions/auth.actions";
 import { DropdownMenuItem } from "./ui/dropdown-menu";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 
@@ -36,7 +36,7 @@ export function LogoutMenuItem() {
 				});
 			}}
 		>
-			<DropdownMenuItem asChild>
+			<DropdownMenuItem disabled={isPending} asChild>
 				<button type="submit" className="flex gap-2 w-full">
 					{isPending ? (
 						<>

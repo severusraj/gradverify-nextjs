@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "@/components/forms/register-form";
 
-export const metadata: Metadata = {
+export const metadata = {
 	title: "Register",
 };
 
 export default function RegisterPage() {
 	return (
-		<div className="mx-auto max-w-3xl px-8 md:px-0 pt-8 pb-10 h-screen w-screen flex flex-col items-center justify-center gap-4">
+		<div className="mx-auto max-w-3xl px-8 md:px-0 h-screen w-screen flex flex-col items-center justify-center gap-4">
 			<RegisterForm />
 			<div className="flex items-center justify-center text-center">
 				<p className="text-sm">

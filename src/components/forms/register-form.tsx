@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
+import { useTransition, useEffect, useActionState } from "react";
+import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { register } from "@/actions/register";
-import { Loader2Icon } from "lucide-react";
+import { registerUser } from "@/actions/auth.actions";
 
 const initialState = {
 	success: false,
@@ -18,27 +18,25 @@ const initialState = {
 export function RegisterForm() {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
-	const [state, setState] = useState(initialState);
+	const [state, formAction] = useActionState(registerUser, initialState);
 
 	useEffect(() => {
 		if (state.success) {
-			toast.success("Account created successfully. Please check your email for verification.");
-			router.push("/verify-email");
+			toast.success(
+				"Registration successful. Please check your email to verify your account.",
+			);
 		} else if (state.message) {
 			toast.error(state.message);
 		}
 	}, [state, router]);
 
-	async function handleRegister(formData: FormData) {
-		startTransition(async () => {
-			const result = await register(formData);
-			setState(result);
-		});
-	}
-
 	return (
 		<form
-			action={handleRegister}
+			action={(formData) => {
+				startTransition(() => {
+					formAction(formData);
+				});
+			}}
 			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"
 		>
 			<div className="flex flex-col space-y-4">
@@ -87,10 +85,11 @@ export function RegisterForm() {
 							className="transition-all h-10"
 						/>
 					</div>
-					<Button type="submit" className="w-full h-10">
+					<Button type="submit" className="w-full h-10" disabled={isPending}>
 						{isPending ? (
 							<>
-								<Loader2Icon className="size-4 animate-spin" /> Creating account...
+								<Loader2Icon className="size-4 animate-spin" /> Creating
+								account...
 							</>
 						) : (
 							<>Create Account</>
@@ -98,10 +97,7 @@ export function RegisterForm() {
 					</Button>
 					<div className="flex items-center justify-center text-center text-sm gap-1.5">
 						<p>Already have an account?</p>
-						<Link
-							href="/login"
-							className="text-blue-500 underline font-medium"
-						>
+						<Link href="/login" className="text-blue-500 underline font-medium">
 							Login Now
 						</Link>
 					</div>
