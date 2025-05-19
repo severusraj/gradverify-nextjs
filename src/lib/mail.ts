@@ -29,7 +29,7 @@ export async function sendVerificationEmail(email: string, token: string, expire
 			<p>
 				<a href="${confirmLink}" style="background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Verify Email</a>
 			</p>
-			<p>This link will expire in 24 hours.</p>
+			<p>This link will expire on <b>${expiresAt}</b>.</p>
 			<p>If you did not create this account, you can safely ignore this email.</p>
 			<hr style="margin: 24px 0;">
 			<p style="font-size: 13px; color: #888;">
