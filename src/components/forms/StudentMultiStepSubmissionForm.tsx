@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { toast } from "sonner";
+import { submitStudentProfile } from "@/actions/studentProfile.actions";
+import { useRouter } from "next/navigation";
+import { Loader2Icon } from "lucide-react";
 
 const steps = [
   "Profile Info",
@@ -9,6 +16,58 @@ const steps = [
   "Graduation Photo",
   "Academic Awards",
 ];
+
+const departments = [
+  {
+    name: "College of Allied Health Studies (CAHS)",
+    programs: [
+      "BS in Nursing",
+      "BS in Midwifery",
+    ],
+  },
+  {
+    name: "College of Business and Accountancy (CBA)",
+    programs: [
+      "BS in Accountancy",
+      "BS in Business Administration Major in Financial Management",
+      "BS in Business Administration Major in Human Resource Management",
+      "BS in Business Administration Major in Marketing Management",
+      "BS in Customs Administration",
+    ],
+  },
+  {
+    name: "College of Computer Studies (CCS)",
+    programs: [
+      "BS in Computer Science",
+      "BS in Entertainment and Multimedia Computing",
+      "BS in Information Technology",
+    ],
+  },
+  {
+    name: "College of Education, Arts, and Sciences (CEAS)",
+    programs: [
+      "BA in Communication",
+      "BS in Early Childhood Education",
+      "BS in Culture and Arts Education",
+      "BS in Physical Education",
+      "BS in Elementary Education (General Education)",
+      "BS in Secondary Education major in English",
+      "BS in Secondary Education major in Filipino",
+      "BS in Secondary Education major in Mathematics",
+      "BS in Secondary Education major in Social Studies",
+      "BS in Secondary Education major in Sciences",
+    ],
+  },
+  {
+    name: "College of Hospitality and Tourism Management (CHTM)",
+    programs: [
+      "BS in Hospitality Management",
+      "BS in Tourism Management",
+    ],
+  },
+];
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function StudentMultiStepSubmissionForm() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -22,22 +81,78 @@ export default function StudentMultiStepSubmissionForm() {
     gradPhoto: null as File | null,
     awards: null as File | null,
   });
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    if (files && files[0]) {
+      if (files[0].size > MAX_FILE_SIZE) {
+        toast.error("File size must be less than 5MB.");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
+
+  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedDepartment(e.target.value);
+    setFormData((prev) => ({ ...prev, department: e.target.value, program: "" }));
+  };
+
+  const programOptions =
+    departments.find((d) => d.name === selectedDepartment)?.programs || [];
 
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, steps.length));
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Integrate with backend submission logic
-    alert("Submitted! (Integrate with backend)");
+    if (currentStep !== steps.length) {
+      return;
+    }
+    setIsSubmitting(true);
+    const data = new FormData();
+    data.append("studentId", formData.studentId);
+    data.append("program", formData.program);
+    data.append("department", formData.department);
+    data.append("dob", formData.dob);
+    data.append("pob", formData.pob);
+    if (formData.psaFile) data.append("psaFile", formData.psaFile);
+    if (formData.gradPhoto) data.append("gradPhoto", formData.gradPhoto);
+    if (formData.awards) data.append("awards", formData.awards);
+
+    const result = await submitStudentProfile({ success: false, message: "" }, data);
+    setIsSubmitting(false);
+    if (result.success) {
+      toast.success(result.message);
+      setFormData({
+        studentId: "",
+        program: "",
+        department: "",
+        dob: "",
+        pob: "",
+        psaFile: null,
+        gradPhoto: null,
+        awards: null,
+      });
+      setSelectedDepartment("");
+      setCurrentStep(1);
+      setTimeout(() => {
+        router.push("/dashboard/student");
+      }, 1500);
+    } else {
+      toast.error(result.message);
+    }
   };
 
   return (
@@ -83,7 +198,7 @@ export default function StudentMultiStepSubmissionForm() {
               <div>
                 <label className="block text-sm font-semibold mb-1">Student ID</label>
                 <input
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
                   placeholder="e.g., 202000123"
                   name="studentId"
                   value={formData.studentId}
@@ -94,59 +209,75 @@ export default function StudentMultiStepSubmissionForm() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-semibold mb-1">Department</label>
+                  <select
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                    name="department"
+                    value={selectedDepartment}
+                    onChange={handleDepartmentChange}
+                    required
+                  >
+                    <option value="">Select department</option>
+                    {departments.map((dept) => (
+                      <option key={dept.name} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">Your academic department</p>
+                </div>
+                <div>
                   <label className="block text-sm font-semibold mb-1">Program</label>
-                  <input
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., BSCS, BSIT"
+                  <select
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
                     name="program"
                     value={formData.program}
                     onChange={handleInputChange}
                     required
-                  />
+                    disabled={!selectedDepartment}
+                  >
+                    <option value="">{selectedDepartment ? "Select program" : "Select department first"}</option>
+                    {programOptions.map((prog) => (
+                      <option key={prog} value={prog}>
+                        {prog}
+                      </option>
+                    ))}
+                  </select>
                   <p className="text-xs text-gray-400 mt-1">Your degree program</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Department</label>
-                  <select
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select department</option>
-                    <option value="CS">Computer Science</option>
-                    <option value="IT">Information Technology</option>
-                    <option value="ENG">Engineering</option>
-                    {/* Add more departments as needed */}
-                  </select>
-                  <p className="text-xs text-gray-400 mt-1">Your academic department</p>
-                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Date of Birth</label>
-                  <input
-                    type="date"
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    name="dob"
-                    value={formData.dob}
-                    onChange={handleInputChange}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">Date of Birth</label>
+                <div className="relative">
+                  <DatePicker
+                    selected={formData.dob ? new Date(formData.dob) : null}
+                    onChange={date => setFormData(prev => ({ ...prev, dob: date ? date.toISOString().split('T')[0] : '' }))}
+                    dateFormat="MM/dd/yyyy"
+                    maxDate={new Date()}
+                    showMonthDropdown
+                    showYearDropdown
+                    dropdownMode="select"
+                    placeholderText="MM/DD/YYYY"
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
                     required
+                    autoComplete="off"
                   />
-                  <p className="text-xs text-gray-400 mt-1">As shown on your PSA certificate</p>
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-10 pointer-events-none">
+                    <CalendarIcon className="text-gray-400" size={20} />
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Place of Birth</label>
-                  <input
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Manila, Philippines"
-                    name="pob"
-                    value={formData.pob}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+                <p className="text-xs text-gray-400 mt-1">As shown on your PSA certificate. You must be at least 15 years old.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Place of Birth</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                  placeholder="e.g., Olongapo City, Philippines"
+                  name="pob"
+                  value={formData.pob}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </>
           )}
@@ -155,16 +286,32 @@ export default function StudentMultiStepSubmissionForm() {
             <>
               <h2 className="text-xl font-bold mb-2">Upload PSA Certificate</h2>
               <p className="text-gray-500 mb-6">Upload a clear scan or photo of your PSA birth certificate.</p>
-              <div>
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  name="psaFile"
-                  onChange={handleInputChange}
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                <p className="text-xs text-gray-400 mt-1">Accepted formats: JPEG, PNG, PDF (max 5MB)</p>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">Upload PSA Certificate</label>
+                {formData.psaFile ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 text-xs font-medium">File selected: {formData.psaFile.name}</span>
+                    <button
+                      type="button"
+                      className="text-blue-600 text-xs underline"
+                      onClick={() => setFormData(prev => ({ ...prev, psaFile: null }))}
+                    >
+                      Change file
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    name="psaFile"
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    required
+                  />
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  Accepted formats: JPEG, PNG, PDF (max 5MB). Your file will be uploaded when you submit the form.
+                </p>
               </div>
             </>
           )}
@@ -173,16 +320,32 @@ export default function StudentMultiStepSubmissionForm() {
             <>
               <h2 className="text-xl font-bold mb-2">Upload Graduation Photo</h2>
               <p className="text-gray-500 mb-6">Upload your official graduation photo.</p>
-              <div>
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png"
-                  name="gradPhoto"
-                  onChange={handleInputChange}
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                <p className="text-xs text-gray-400 mt-1">Accepted formats: JPEG, PNG (max 5MB)</p>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">Upload Graduation Photo</label>
+                {formData.gradPhoto ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 text-xs font-medium">File selected: {formData.gradPhoto.name}</span>
+                    <button
+                      type="button"
+                      className="text-blue-600 text-xs underline"
+                      onClick={() => setFormData(prev => ({ ...prev, gradPhoto: null }))}
+                    >
+                      Change file
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png"
+                    name="gradPhoto"
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    required
+                  />
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  Accepted formats: JPEG, PNG (max 5MB). Your file will be uploaded when you submit the form.
+                </p>
               </div>
             </>
           )}
@@ -191,39 +354,63 @@ export default function StudentMultiStepSubmissionForm() {
             <>
               <h2 className="text-xl font-bold mb-2">Upload Academic Awards</h2>
               <p className="text-gray-500 mb-6">Upload any academic award certificates (optional).</p>
-              <div>
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  name="awards"
-                  onChange={handleInputChange}
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">Accepted formats: JPEG, PNG, PDF (max 5MB)</p>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">Upload Academic Awards <span className="text-gray-400 font-normal">(optional)</span></label>
+                {formData.awards ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 text-xs font-medium">File selected: {formData.awards.name}</span>
+                    <button
+                      type="button"
+                      className="text-blue-600 text-xs underline"
+                      onClick={() => setFormData(prev => ({ ...prev, awards: null }))}
+                    >
+                      Change file
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    name="awards"
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    autoFocus={false}
+                  />
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  Accepted formats: JPEG, PNG, PDF (max 5MB). If you don't have any awards, you can leave this blank.
+                </p>
               </div>
             </>
           )}
-
-          <div className="flex justify-between mt-8">
+          {/* Prominent Submit button inside the form, only on last step */}
+          {currentStep === steps.length && (
             <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 1}
+              type="submit"
+              className="mt-8 w-full bg-primary text-primary-foreground shadow-lg rounded-lg text-lg font-semibold py-3 transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/50"
+              disabled={isSubmitting}
             >
-              Previous
+              {isSubmitting ? <Loader2Icon className="size-5 animate-spin mr-2" /> : null} Submit
             </Button>
-            {currentStep < steps.length ? (
-              <Button type="button" onClick={nextStep}>
-                Next
-              </Button>
-            ) : (
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                Submit
-              </Button>
-            )}
-          </div>
+          )}
         </form>
+        {/* Step navigation buttons outside the form */}
+        <div className="flex justify-between mt-8 gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+            className="flex-1"
+          >
+            Previous
+          </Button>
+          {currentStep < steps.length && (
+            <Button type="button" onClick={nextStep} className="flex-1">
+              Next
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
