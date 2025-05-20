@@ -32,6 +32,7 @@
 		"next": "15.3.2",
 		"prisma": "^6.8.2",
 		"react": "^19.0.0",
+		"react-datepicker": "^8.3.0",
 		"react-dom": "^19.0.0",
 		"resend": "^4.5.1",
 		"sonner": "^2.0.3",
