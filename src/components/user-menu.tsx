@@ -16,6 +16,17 @@ import { LogoutMenuItem } from "./logout-button";
 export async function UserMenu() {
 	const user = await getCurrentUser();
 
+	const dashboardPath =
+		user?.role === "SUPER_ADMIN"
+			? "/dashboard/superadmin"
+			: user?.role === "ADMIN"
+			? "/dashboard/admin"
+			: user?.role === "FACULTY"
+			? "/dashboard/faculty"
+			: user?.role === "STUDENT"
+			? "/dashboard/student"
+			: "/dashboard";
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -38,12 +49,12 @@ export async function UserMenu() {
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link href="/dashboard" className="flex gap-2">
+					<Link href={dashboardPath} className="flex gap-2">
 						<LayoutDashboardIcon className="size-4" /> Dashboard
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
-					<Link href="/account" className="flex gap-2">
+					<Link href="/dashboard/settings" className="flex gap-2">
 						<Settings2Icon className="size-4" /> Settings
 					</Link>
 				</DropdownMenuItem>

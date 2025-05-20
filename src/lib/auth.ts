@@ -8,6 +8,7 @@ export type AuthPayload = {
 	id: string;
 	email: string;
 	role: "STUDENT" | "ADMIN" | "SUPER_ADMIN" | "FACULTY";
+	name?: string;
 };
 
 export async function signAuthToken(payload: AuthPayload) {
