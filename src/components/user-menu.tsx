@@ -20,12 +20,12 @@ export async function UserMenu() {
 		user?.role === "SUPER_ADMIN"
 			? "/dashboard/superadmin"
 			: user?.role === "ADMIN"
-			? "/dashboard/admin"
-			: user?.role === "FACULTY"
-			? "/dashboard/faculty"
-			: user?.role === "STUDENT"
-			? "/dashboard/student"
-			: "/dashboard";
+				? "/dashboard/admin"
+				: user?.role === "FACULTY"
+					? "/dashboard/faculty"
+					: user?.role === "STUDENT"
+						? "/dashboard/student"
+						: "/dashboard";
 
 	return (
 		<DropdownMenu>

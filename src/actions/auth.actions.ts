@@ -222,3 +222,78 @@ export async function logoutUser(): Promise<{
 		};
 	}
 }
+
+// Server Action for Resending Verification Email
+export async function resendVerificationEmail(
+	_prevState: { success: boolean; message: string },
+	formData: FormData,
+): Promise<{
+	success: boolean;
+	message: string;
+}> {
+	try {
+		const email = formData.get("email") as string;
+
+		if (!email) {
+			return {
+				success: false,
+				message: "Email is required.",
+			};
+		}
+
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return {
+				success: false,
+				message: "Invalid email format.",
+			};
+		}
+
+		const user = await prisma.user.findUnique({
+			where: { email },
+		});
+
+		if (!user) {
+			return {
+				success: false,
+				message: "No user found with this email.",
+			};
+		}
+
+		if (user.emailVerified) {
+			return {
+				success: false,
+				message: "Email is already verified.",
+			};
+		}
+
+		const token = crypto.randomBytes(32).toString("hex");
+		const expires = addMinutes(new Date(), 30);
+
+		await prisma.verificationToken.deleteMany({
+			where: { email },
+		});
+
+		await prisma.verificationToken.create({
+			data: {
+				email,
+				token,
+				expires,
+			},
+		});
+
+		await sendVerificationEmail(user.email, token, user.name);
+
+		return {
+			success: true,
+			message: "Verification email resent successfully.",
+		};
+	} catch (error_) {
+		const error = error_ as Error;
+		console.error(error, error.message);
+		return {
+			success: false,
+			message: "Something went wrong. Please try again.",
+		};
+	}
+}
