@@ -8,6 +8,7 @@ export type AuthPayload = {
 	id: string;
 	email: string;
 	role: "STUDENT" | "ADMIN" | "SUPER_ADMIN" | "FACULTY";
+	name?: string;
 };
 
 export async function signAuthToken(payload: AuthPayload) {
@@ -82,5 +83,24 @@ export async function getSessionUser<T = any>(): Promise<T | null> {
 		const error = error_ as Error;
 		console.error(error.message, error);
 		return null;
+	}
+}
+
+export async function getSessionUserWithStatus<T = any>(): Promise<{ user: T | null, invalidToken: boolean }> {
+	try {
+		const token = await getAuthCookie();
+		if (!token) return { user: null, invalidToken: false };
+
+		try {
+			const user = await verifyAuthToken<T>(token);
+			return { user, invalidToken: false };
+		} catch {
+			// Token is invalid
+			return { user: null, invalidToken: true };
+		}
+	} catch (error_) {
+		const error = error_ as Error;
+		console.error(error.message, error);
+		return { user: null, invalidToken: false };
 	}
 }
