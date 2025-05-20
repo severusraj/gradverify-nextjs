@@ -50,5 +50,5 @@ export default async function handler(
 		},
 	});
 
-	return res.redirect("/verified");
+	return res.redirect("/login");
 }

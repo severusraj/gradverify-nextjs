@@ -43,7 +43,7 @@ export async function UserMenu() {
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
-					<Link href="/account" className="flex gap-2">
+					<Link href="/dashboard/account" className="flex gap-2">
 						<Settings2Icon className="size-4" /> Settings
 					</Link>
 				</DropdownMenuItem>

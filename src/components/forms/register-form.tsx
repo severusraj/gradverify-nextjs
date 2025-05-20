@@ -17,7 +17,9 @@ const initialState = {
 
 export function RegisterForm() {
 	const router = useRouter();
+
 	const [isPending, startTransition] = useTransition();
+
 	const [state, formAction] = useActionState(registerUser, initialState);
 
 	useEffect(() => {
@@ -25,6 +27,7 @@ export function RegisterForm() {
 			toast.success(
 				"Registration successful. Please check your email to verify your account.",
 			);
+			router.push("/register/verify-your-email");
 		} else if (state.message) {
 			toast.error(state.message);
 		}
