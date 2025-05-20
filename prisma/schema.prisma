@@ -26,10 +26,7 @@ model User {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   verificationTokens VerificationToken[]
-
-  submissions Submission[]
-  feedbacks   Feedback[]
-  studentProfile StudentProfile?
+  studentProfile     StudentProfile?
 }
 
 model VerificationToken {
@@ -42,29 +39,6 @@ model VerificationToken {
   userId    String?
 }
 
-model Submission {
-  id        String           @id @default(uuid())
-  studentId String
-  type      SubmissionType
-  data      Json
-  status    SubmissionStatus @default(PENDING)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-
-  student  User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  feedback Feedback?
-}
-
-model Feedback {
-  id           String   @id @default(uuid())
-  submissionId String   @unique
-  adminId      String
-  message      String
-  createdAt    DateTime @default(now())
-
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  admin      User       @relation(fields: [adminId], references: [id])
-}
 
 model StudentProfile {
   id              String   @id @default(cuid())
@@ -77,6 +51,7 @@ model StudentProfile {
   psaS3Key        String
   gradPhotoS3Key  String
   awardsS3Key     String?
+  status          SubmissionStatus @default(PENDING)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

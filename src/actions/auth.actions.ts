@@ -86,6 +86,7 @@ export async function loginUser(
 			id: user.id,
 			email: user.email,
 			role: user.role,
+			name: user.name,
 		});
 		await setAuthCookie(sessionToken);
 
