@@ -10,6 +10,7 @@ import {
 	ArrowUpRight,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import React, { useEffect, useState } from "react";
 
 // Real department data from student submissions
 const departments = [
@@ -83,15 +84,31 @@ const recentSubmissions = [
 	// Add more items as needed
 ];
 
-// Calculate department progress based on real departments
-const departmentProgress = departments.map(dept => ({
-	name: dept.name,
-	pending: Math.floor(Math.random() * 20), // Replace with real data
-	approved: Math.floor(Math.random() * 50), // Replace with real data
-	get total() { return this.pending + this.approved; }
-}));
-
 export default function SuperAdminDashboard() {
+	type DepartmentProgress = {
+		name: string;
+		pending: number;
+		approved: number;
+		total: number;
+	};
+
+	const [departmentProgress, setDepartmentProgress] = useState<DepartmentProgress[]>([]);
+
+	useEffect(() => {
+		setDepartmentProgress(
+			departments.map(dept => {
+				const pending = Math.floor(Math.random() * 20);
+				const approved = Math.floor(Math.random() * 50);
+				return {
+					name: dept.name,
+					pending,
+					approved,
+					total: pending + approved,
+				};
+			})
+		);
+	}, []);
+
 	return (
 		<div className="p-8 space-y-8">
 			{/* Page Header */}
