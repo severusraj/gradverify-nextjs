@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from "sonner";
 import { submitStudentProfile } from "@/actions/studentProfile.actions";
 import { useRouter } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const steps = [
   "Profile Info",
@@ -248,25 +250,72 @@ export default function StudentMultiStepSubmissionForm() {
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-1">Date of Birth</label>
-                <div className="relative">
-                  <DatePicker
-                    selected={formData.dob ? new Date(formData.dob) : null}
-                    onChange={date => setFormData(prev => ({ ...prev, dob: date ? date.toISOString().split('T')[0] : '' }))}
-                    dateFormat="MM/dd/yyyy"
-                    maxDate={new Date()}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    placeholderText="MM/DD/YYYY"
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
-                    required
-                    autoComplete="off"
-                  />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-10 pointer-events-none">
-                    <CalendarIcon className="text-gray-400" size={20} />
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">As shown on your PSA certificate. You must be at least 15 years old.</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full flex items-center justify-between border border-gray-200 rounded-lg px-4 py-2 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-600 transition",
+                        !formData.dob && "text-gray-400"
+                      )}
+                    >
+                      {formData.dob
+                        ? format(new Date(formData.dob), "MM/dd/yyyy")
+                        : "Pick a date"}
+                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
+                    <div className="p-2">
+                      <Calendar
+                        mode="single"
+                        selected={formData.dob ? new Date(formData.dob) : undefined}
+                        onSelect={date => {
+                          if (date) {
+                            // Create date at noon to avoid timezone issues
+                            const selectedDate = new Date(date);
+                            selectedDate.setHours(12, 0, 0, 0);
+                            setFormData(prev => ({
+                              ...prev,
+                              dob: selectedDate.toISOString().split("T")[0],
+                            }));
+                          }
+                        }}
+                        initialFocus
+                        fromYear={1970}
+                        toYear={new Date().getFullYear()}
+                        disabled={date => date > new Date()}
+                        className="w-72"
+                        captionLayout="dropdown"
+                        classNames={{
+                          caption: "flex justify-center pt-1 relative items-center",
+                          caption_dropdowns: "flex gap-2",
+                          caption_label: "hidden",
+                          vhidden: "hidden",
+                          nav: "space-x-1 flex items-center",
+                          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                          nav_button_previous: "absolute left-1",
+                          nav_button_next: "absolute right-1",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                          row: "flex w-full mt-2",
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-9 w-9",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:outline-none rounded-md",
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                          day_today: "bg-accent text-accent-foreground",
+                          day_outside: "text-muted-foreground opacity-50",
+                          day_disabled: "text-muted-foreground opacity-50",
+                          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                          day_hidden: "invisible"
+                        }}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-gray-400 mt-1">
+                  As shown on your PSA certificate. You must be at least 15 years old.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1">Place of Birth</label>
