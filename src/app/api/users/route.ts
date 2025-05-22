@@ -1,18 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { getCurrentUser } from "@/lib/current-user";
+import { withSuperAdmin } from "@/lib/api-middleware";
+import { apiResponse, handleApiError } from "@/lib/api-utils";
 
-export async function GET() {
+async function handler(req: NextRequest) {
   try {
-    // Check if the current user is a super admin
-    const currentUser = await getCurrentUser();
-    if (!currentUser || currentUser.role !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     // Fetch all admin and faculty users
     const users = await prisma.user.findMany({
       where: {
@@ -32,13 +24,10 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json({ users });
-
+    return apiResponse({ users });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-} 
+}
+
+export const GET = withSuperAdmin(handler); 

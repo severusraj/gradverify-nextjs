@@ -18,8 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Trash2, Edit2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit2, Users2 } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -29,31 +31,43 @@ interface User {
   createdAt: string;
 }
 
-export function UserManagementTable() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
+  const [users, setUsers] = useState<User[]>(propUsers || []);
+  const [isLoading, setIsLoading] = useState(!propUsers);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/users");
-      const data = await response.json();
-      
-      if (response.ok) {
-        setUsers(data.users);
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch users");
-    } finally {
+  // Filtered and paginated users
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    if (!propUsers) {
+      const fetchUsers = async () => {
+        try {
+          const response = await fetch("/api/users");
+          const data = await response.json();
+          if (response.ok) setUsers(data.users);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchUsers();
+    } else {
+      setUsers(propUsers);
       setIsLoading(false);
     }
-  };
+  }, [propUsers]);
 
-  // Fetch users on component mount
   useEffect(() => {
-    fetchUsers();
-  }, []); // Empty dependency array means this runs once on mount
+    setPage(1); // Reset to first page on search
+  }, [search]);
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -63,8 +77,12 @@ export function UserManagementTable() {
 
       if (response.ok) {
         toast.success("User deleted successfully");
-        // Refresh users list
-        fetchUsers();
+        if (!propUsers) {
+          // Refresh users list only if fetching internally
+          const res = await fetch("/api/users");
+          const data = await res.json();
+          setUsers(data.users);
+        }
       } else {
         const data = await response.json();
         throw new Error(data.message);
@@ -75,12 +93,27 @@ export function UserManagementTable() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+      </div>
+    );
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border bg-white shadow-sm overflow-x-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border-b">
+        <Input
+          placeholder="Search users by name or email..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <div className="text-sm text-muted-foreground hidden md:block">
+          Showing {paginatedUsers.length} of {filteredUsers.length} users
+        </div>
+      </div>
+      <Table className="min-w-[600px]">
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
@@ -91,8 +124,8 @@ export function UserManagementTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
+          {paginatedUsers.map((user) => (
+            <TableRow key={user.id} className="hover:bg-muted/40 transition">
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell className="capitalize">
@@ -128,15 +161,49 @@ export function UserManagementTable() {
               </TableCell>
             </TableRow>
           ))}
-          {users.length === 0 && (
+          {paginatedUsers.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">
-                No users found
+              <TableCell colSpan={5} className="text-center py-12">
+                <div className="flex flex-col items-center gap-2">
+                  <Users2 className="w-8 h-8 text-muted-foreground mb-2" />
+                  <span className="text-muted-foreground">No users found</span>
+                </div>
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Prev
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Button
+              key={i}
+              variant={page === i + 1 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPage(i + 1)}
+            >
+              {i + 1}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  LineChart,
+  LineChart as ReLineChart,
   Line,
   BarChart,
   Bar,
@@ -17,40 +17,86 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { format, subDays } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Mock data - Replace with real API data
-const generateDailyData = () => {
-  return Array.from({ length: 30 }, (_, i) => ({
-    date: format(subDays(new Date(), 29 - i), "MMM dd"),
-    submissions: Math.floor(Math.random() * 50) + 10,
-    approved: Math.floor(Math.random() * 30) + 5,
-    rejected: Math.floor(Math.random() * 10),
-  }));
-};
-
-const departmentData = [
-  { name: "CAHS", value: 120 },
-  { name: "CBA", value: 180 },
-  { name: "CCS", value: 150 },
-  { name: "CEAS", value: 200 },
-  { name: "CHTM", value: 90 },
-];
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
-const documentTypes = [
-  { type: "PSA Certificate", count: 250 },
-  { type: "Graduation Photo", count: 220 },
-  { type: "Academic Awards", count: 80 },
-  { type: "Other Documents", count: 50 },
-];
+// Static mapping of departments to programs
+const departmentPrograms: Record<string, string[]> = {
+  "College of Allied Health Studies (CAHS)": ["BS in Nursing", "BS in Midwifery"],
+  "College of Business and Accountancy (CBA)": [
+    "BS in Accountancy",
+    "BS in Business Administration Major in Financial Management",
+    "BS in Business Administration Major in Human Resource Management",
+    "BS in Business Administration Major in Marketing Management",
+    "BS in Customs Administration"
+  ],
+  "College of Computer Studies (CCS)": [
+    "BS in Computer Science",
+    "BS in Entertainment and Multimedia Computing",
+    "BS in Information Technology"
+  ],
+  "College of Education, Arts, and Sciences (CEAS)": [
+    "BA in Communication",
+    "BS in Early Childhood Education",
+    "BS in Culture and Arts Education",
+    "BS in Physical Education",
+    "BS in Elementary Education (General Education)",
+    "BS in Secondary Education major in English",
+    "BS in Secondary Education major in Filipino",
+    "BS in Secondary Education major in Mathematics",
+    "BS in Secondary Education major in Social Studies",
+    "BS in Secondary Education major in Sciences"
+  ],
+  "College of Hospitality and Tourism Management (CHTM)": [
+    "BS in Hospitality Management",
+    "BS in Tourism Management"
+  ]
+};
 
 export default function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("30days");
-  const dailyData = generateDailyData();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>(Object.keys(departmentPrograms)[0]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/superadmin/analytics?range=${timeRange}`)
+      .then(res => res.json())
+      .then(res => {
+        setData(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError("Failed to load analytics data");
+        setLoading(false);
+      });
+  }, [timeRange]);
+
+  if (loading) return <div className="p-8">Loading analytics...</div>;
+  if (error) return <div className="p-8 text-red-600">{error}</div>;
+  if (!data) return <div className="p-8">No analytics data available</div>;
+
+  // Summary values
+  const totalSubmissions = Object.values(data.verificationStats).reduce((a, b) => Number(a) + Number(b), 0);
+  const approved = Number(data.verificationStats.APPROVED || 0);
+  const approvalRate = Number(totalSubmissions) ? ((Number(approved) / Number(totalSubmissions)) * 100).toFixed(1) : "0";
+  const avgProcessingTime = data.processingTimes && data.processingTimes.length
+    ? (data.processingTimes.map((p: any) => p.avgProcessingDays || 0).reduce((a: number, b: number) => a + b, 0) / data.processingTimes.length).toFixed(1)
+    : "N/A";
+  const activeVerifiers = data.activeVerifiers || 0;
+
+  // Trends and charts
+  const dailyData = data.dailyTrends || [];
+  const departmentData = Object.entries(data.departmentStats).map(([name, value]) => ({ name, value }));
+  const documentTypes = data.documentTypes || [];
+  const processingTimes = data.processingTimes || [];
+
+  // Filter processingTimes by selected department
+  const filteredPrograms = departmentPrograms[selectedDepartment] || [];
+  const filteredProcessingTimes = processingTimes.filter((pt: any) => filteredPrograms.includes(pt.program));
 
   return (
     <div className="p-8 space-y-8">
@@ -80,8 +126,8 @@ export default function AnalyticsDashboard() {
             <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,284</div>
-            <p className="text-xs text-muted-foreground">+12.3% from last month</p>
+            <div className="text-2xl font-bold">{Number(totalSubmissions)}</div>
+            <p className="text-xs text-muted-foreground">Total verification requests</p>
           </CardContent>
         </Card>
         <Card>
@@ -89,17 +135,17 @@ export default function AnalyticsDashboard() {
             <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">76.4%</div>
-            <p className="text-xs text-muted-foreground">+2.1% from last month</p>
+            <div className="text-2xl font-bold">{approvalRate}%</div>
+            <p className="text-xs text-muted-foreground">% of requests approved</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Average Processing Time</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg. Processing Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.4 days</div>
-            <p className="text-xs text-muted-foreground">-0.8 days from last month</p>
+            <div className="text-2xl font-bold">{avgProcessingTime} days</div>
+            <p className="text-xs text-muted-foreground">Across all document types</p>
           </CardContent>
         </Card>
         <Card>
@@ -107,8 +153,8 @@ export default function AnalyticsDashboard() {
             <CardTitle className="text-sm font-medium">Active Verifiers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">+3 from last month</p>
+            <div className="text-2xl font-bold">{activeVerifiers}</div>
+            <p className="text-xs text-muted-foreground">Admins/faculty in last 30 days</p>
           </CardContent>
         </Card>
       </div>
@@ -123,7 +169,7 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyData}>
+                <ReLineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
@@ -132,7 +178,7 @@ export default function AnalyticsDashboard() {
                   <Line type="monotone" dataKey="submissions" stroke="#8884d8" name="Submissions" />
                   <Line type="monotone" dataKey="approved" stroke="#82ca9d" name="Approved" />
                   <Line type="monotone" dataKey="rejected" stroke="#ff7c7c" name="Rejected" />
-                </LineChart>
+                </ReLineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -193,30 +239,37 @@ export default function AnalyticsDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Processing Time Analysis</CardTitle>
+            <div className="mt-2">
+              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                <SelectTrigger className="w-[320px]">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(departmentPrograms).map((dept) => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span>PSA Certificate</span>
-                <span className="font-medium">2.1 days avg.</span>
-                <div className="w-1/2 h-2 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "70%" }} />
+              {filteredProcessingTimes.length === 0 && (
+                <div className="text-muted-foreground">No programs found for this department.</div>
+              )}
+              {filteredProcessingTimes.map((pt: any, idx: number) => (
+                <div key={pt.program || idx} className="flex justify-between items-center">
+                  <span>{pt.program}</span>
+                  <span className="font-medium">
+                    {pt.avgProcessingDays != null
+                      ? `${pt.avgProcessingDays.toFixed(1)} days avg.`
+                      : "No data"}
+                  </span>
+                  <div className="w-1/2 h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: pt.avgProcessingDays ? `${Math.min(100, pt.avgProcessingDays * 20)}%` : "0%" }} />
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Graduation Photo</span>
-                <span className="font-medium">1.5 days avg.</span>
-                <div className="w-1/2 h-2 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "85%" }} />
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Academic Awards</span>
-                <span className="font-medium">3.2 days avg.</span>
-                <div className="w-1/2 h-2 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "55%" }} />
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

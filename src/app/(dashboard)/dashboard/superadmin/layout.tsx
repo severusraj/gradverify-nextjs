@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SuperadminLogoutButton } from "@/components/superadmin-logout-button";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -88,11 +89,14 @@ export default function SuperAdminLayout({
         <div className="flex h-14 items-center border-b px-4">
           <span className="font-semibold">Super Admin</span>
         </div>
-        <ScrollArea className="h-[calc(100vh-3.5rem)]">
+        <ScrollArea className="h-[calc(100vh-3.5rem)] flex flex-col justify-between">
           <div className="space-y-1 p-2">
             {navItems.map((item) => (
               <NavItem key={item.href} {...item} />
             ))}
+          </div>
+          <div className="p-4 border-t">
+            <SuperadminLogoutButton />
           </div>
         </ScrollArea>
       </aside>
@@ -104,7 +108,7 @@ export default function SuperAdminLayout({
           sidebarOpen ? "ml-64" : "ml-0"
         )}
       >
-        <div className="sticky top-0 z-30 flex h-14 items-center border-b bg-background px-4">
+        <div className="sticky top-0 z-30 flex h-14 items-center border-b bg-background px-4 justify-between">
           <Button
             variant="ghost"
             size="icon"

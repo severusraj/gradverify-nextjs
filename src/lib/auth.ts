@@ -1,6 +1,14 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { SESSION_TOKEN } from "./constants";
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/db/prisma";
+import { compare } from "bcryptjs";
+import { JWT } from "next-auth/jwt";
+import { Session } from "next-auth";
+import type { User } from "@/generated/prisma";
 
 const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 
@@ -104,3 +112,92 @@ export async function getSessionUserWithStatus<T = any>(): Promise<{ user: T | n
 		return { user: null, invalidToken: false };
 	}
 }
+
+interface ExtendedSession extends Session {
+	user: {
+		id: string;
+		name: string;
+		email: string;
+		role: string;
+	};
+}
+
+interface ExtendedToken extends JWT {
+	id: string;
+	name: string;
+	email: string;
+	role: string;
+}
+
+export const authOptions: NextAuthOptions = {
+	adapter: PrismaAdapter(prisma),
+	session: {
+		strategy: "jwt",
+	},
+	pages: {
+		signIn: "/login",
+	},
+	providers: [
+		CredentialsProvider({
+			name: "credentials",
+			credentials: {
+				email: { label: "Email", type: "email" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize(credentials) {
+				if (!credentials?.email || !credentials?.password) {
+					throw new Error("Invalid credentials");
+				}
+
+				const user = await prisma.user.findUnique({
+					where: {
+						email: credentials.email,
+					},
+				});
+
+				if (!user) {
+					throw new Error("Invalid credentials");
+				}
+
+				const isPasswordValid = await compare(credentials.password, user.password);
+
+				if (!isPasswordValid) {
+					throw new Error("Invalid credentials");
+				}
+
+				return {
+					id: user.id,
+					email: user.email,
+					name: user.name,
+					role: user.role,
+				};
+			},
+		}),
+	],
+	callbacks: {
+		async session({ session, token }: { session: Session; token: JWT }): Promise<ExtendedSession> {
+			if (token) {
+				(session as ExtendedSession).user = {
+					id: (token as ExtendedToken).id,
+					name: (token as ExtendedToken).name,
+					email: (token as ExtendedToken).email,
+					role: (token as ExtendedToken).role,
+				};
+			}
+			return session as ExtendedSession;
+		},
+		async jwt({ token, user, account, profile, trigger, isNewUser, session }) {
+			if (user) {
+				const prismaUser = user as unknown as User;
+				token = {
+					...token,
+					id: prismaUser.id,
+					name: prismaUser.name,
+					email: prismaUser.email,
+					role: prismaUser.role,
+				};
+			}
+			return token;
+		},
+	},
+};

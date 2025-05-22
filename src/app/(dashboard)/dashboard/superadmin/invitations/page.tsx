@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,18 +28,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 
-// Mock data for recipients
-const recipients = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Graduate", department: "CCS", award: "Cum Laude" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Graduate", department: "CBA", award: "Magna Cum Laude" },
-  { id: 3, name: "Prof. Alan Turing", email: "alan@faculty.edu", role: "Faculty", department: "CCS", award: "" },
-  { id: 4, name: "Dr. Ada Lovelace", email: "ada@admin.edu", role: "Admin", department: "CEAS", award: "" },
-  { id: 5, name: "Maria Garcia", email: "maria@example.com", role: "Graduate", department: "CAHS", award: "" },
-  { id: 6, name: "Prof. Grace Hopper", email: "grace@faculty.edu", role: "Faculty", department: "CBA", award: "" },
-  // Add more as needed
-];
-
-const roles = ["All", "Graduate", "Faculty", "Admin"];
+const roles = ["Graduate"];
 const departments = ["All", "CCS", "CBA", "CAHS", "CEAS", "CHTM"];
 const awards = ["All", "Cum Laude", "Magna Cum Laude", "Summa Cum Laude"];
 
@@ -61,6 +50,7 @@ function TiptapEditor({ value, onChange }: { value: string; onChange: (v: string
     extensions: [StarterKit, Link],
     content: value,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    immediatelyRender: false,
   });
   return (
     <div className="border rounded-md bg-white">
@@ -70,43 +60,103 @@ function TiptapEditor({ value, onChange }: { value: string; onChange: (v: string
 }
 
 export default function InvitationsPage() {
-  const [roleFilter, setRoleFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("Graduate");
   const [deptFilter, setDeptFilter] = useState("All");
   const [awardFilter, setAwardFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [invitation, setInvitation] = useState("<p>Dear [Name],</p><p>You are cordially invited to the graduation ceremony.</p><p>Best regards,<br/>School Administration</p>");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [detailsRecipient, setDetailsRecipient] = useState<any | null>(null);
   const [previewAllOpen, setPreviewAllOpen] = useState(false);
+  const [recipients, setRecipients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecipients, setTotalRecipients] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
 
-  const filtered = recipients.filter(r =>
-    (roleFilter === "All" || r.role === roleFilter) &&
-    (deptFilter === "All" || r.department === deptFilter) &&
-    (awardFilter === "All" || r.award === awardFilter) &&
-    (search === "" || r.name.toLowerCase().includes(search.toLowerCase()) || r.email.toLowerCase().includes(search.toLowerCase()))
-  );
+  useEffect(() => {
+    fetchRecipients();
+    // eslint-disable-next-line
+  }, [roleFilter, deptFilter, awardFilter, search, page, pageSize]);
 
-  const handleSelect = (id: number) => {
+  const fetchRecipients = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        role: roleFilter,
+        department: deptFilter,
+        award: awardFilter,
+        search,
+        page: String(page),
+        limit: String(pageSize),
+      });
+      const res = await fetch(`/api/superadmin/invitations/recipients?${params.toString()}`);
+      const data = await res.json();
+      if (res.ok) {
+        setRecipients(data.data.recipients);
+        setTotalPages(data.data.pagination.pages);
+        setTotalRecipients(data.data.pagination.total);
+      } else {
+        toast.error(data.error || "Failed to fetch recipients");
+      }
+    } catch {
+      toast.error("Failed to fetch recipients");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelect = (id: string) => {
     setSelected(sel => sel.includes(id) ? sel.filter(i => i !== id) : [...sel, id]);
   };
   const handleSelectAll = () => {
-    if (selected.length === filtered.length) setSelected([]);
-    else setSelected(filtered.map(r => r.id));
+    if (selected.length === recipients.length) setSelected([]);
+    else setSelected(recipients.map(r => r.id));
   };
-
-  // Helper to select all in current department
   const handleSelectAllDept = () => {
     if (deptFilter === "All") return;
-    const deptIds = filtered.filter(r => r.department === deptFilter).map(r => r.id);
+    const deptIds = recipients.filter(r => r.department === deptFilter).map(r => r.id);
     setSelected(sel => Array.from(new Set([...sel, ...deptIds])));
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setConfirmOpen(false);
-    toast.success(`Invitations sent to ${selected.length} recipient(s).`);
-    setSelected([]);
+    if (selected.length === 0) return;
+    try {
+      const res = await fetch("/api/superadmin/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: selected,
+          template: invitation,
+          subject: "Graduation Ceremony Invitation",
+          eventDate: "2024-06-30",
+          eventLocation: "Main Auditorium",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Invitations sent to ${selected.length} recipient(s).`);
+        setSelected([]);
+        fetchRecipients();
+      } else {
+        toast.error(data.error || "Failed to send invitations");
+      }
+    } catch {
+      toast.error("Failed to send invitations");
+    }
+  };
+
+  // Pagination controls
+  const handlePrevPage = () => setPage((p) => Math.max(1, p - 1));
+  const handleNextPage = () => setPage((p) => Math.min(totalPages, p + 1));
+  const handlePageChange = (newPage: number) => setPage(newPage);
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(e.target.value));
+    setPage(1);
   };
 
   return (
@@ -120,7 +170,7 @@ export default function InvitationsPage() {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
+        <Select value={roleFilter} onValueChange={setRoleFilter} disabled>
           <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
@@ -181,7 +231,7 @@ export default function InvitationsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={handleSelectAll} />
+                    <input type="checkbox" checked={selected.length === recipients.length && recipients.length > 0} onChange={handleSelectAll} />
                   </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
@@ -192,7 +242,7 @@ export default function InvitationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(r => (
+                {recipients.map(r => (
                   <TableRow key={r.id}>
                     <TableCell>
                       <input type="checkbox" checked={selected.includes(r.id)} onChange={() => handleSelect(r.id)} />
@@ -214,6 +264,33 @@ export default function InvitationsPage() {
               </TableBody>
             </Table>
           </ScrollArea>
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={page === 1}>Prev</Button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Button
+                  key={i + 1}
+                  variant={page === i + 1 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(i + 1)}
+                  className={page === i + 1 ? "font-bold" : ""}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button variant="outline" size="sm" onClick={handleNextPage} disabled={page === totalPages}>Next</Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs">Rows per page:</span>
+              <select value={pageSize} onChange={handlePageSizeChange} className="border rounded px-2 py-1 text-xs">
+                {[10, 20, 50, 100].map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+              <span className="text-xs text-muted-foreground">{(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalRecipients)} of {totalRecipients}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
