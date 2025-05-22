@@ -127,7 +127,12 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                 {profile.status === "REJECTED" && (
                   <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-800 font-medium">Your submission has been rejected.</p>
-                    <p className="text-red-700 text-sm mt-1">Please review your documents and submit again.</p>
+                    {profile.feedback && (
+                      <p className="text-red-700 text-sm mt-1">{profile.feedback}</p>
+                    )}
+                    {!profile.feedback && (
+                      <p className="text-red-700 text-sm mt-1">Please review your documents and submit again.</p>
+                    )}
                   </div>
                 )}
               </CardContent>

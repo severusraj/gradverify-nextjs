@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSessionUserWithStatus, type AuthPayload } from "./lib/auth";
+import { getSessionUserWithStatusEdge, type AuthPayload } from "./lib/auth-edge";
 import { SESSION_TOKEN } from "./lib/constants";
 
 const roleRoutes = {
@@ -13,7 +13,7 @@ const authRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
-	const { user, invalidToken } = await getSessionUserWithStatus<AuthPayload>();
+	const { user, invalidToken } = await getSessionUserWithStatusEdge<AuthPayload>();
 	const isAuthenticated = !!user;
 
 	// Force logout on invalid token
