@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
 	DropdownMenu,
@@ -9,13 +11,15 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { getCurrentUser } from "@/lib/current-user";
+import { User } from "@/lib/current-user";
 import { LayoutDashboardIcon, Settings2Icon } from "lucide-react";
 import { LogoutMenuItem } from "./logout-button";
 
-export async function UserMenu() {
-	const user = await getCurrentUser();
+interface UserMenuProps {
+	user: User | null;
+}
 
+export function UserMenu({ user }: UserMenuProps) {
 	const dashboardPath =
 		user?.role === "SUPER_ADMIN"
 			? "/dashboard/superadmin"

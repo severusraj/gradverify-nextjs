@@ -10,22 +10,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { StatusBadge } from "@/components/ui/status-badge";
 
 type SubmissionType = "PSA" | "GRADUATION_PHOTO" | "AWARD";
-type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED";
+// type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "NOT_SUBMITTED"; // Using the type from StatusBadge component
 
-type Submission = {
-  id: string;
-  studentId: string;
-  type: SubmissionType;
-  data: {
-    fileName: string;
-    fileType: string;
-    fileSize: number;
-    s3Key: string;
-  };
-  status: SubmissionStatus;
-  createdAt: Date;
-  updatedAt: Date;
-};
+// No explicit type needed for Submission here as we fetch StudentProfile
 
 export default async function StudentDashboard({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const user = await getSessionUser();
@@ -48,8 +35,13 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
   let gradPhotoUrl = null;
   let awardsUrl = null;
   if (profile) {
-    psaUrl = await getSignedDownloadUrl(profile.psaS3Key);
-    gradPhotoUrl = await getSignedDownloadUrl(profile.gradPhotoS3Key);
+    // Add null checks before calling getSignedDownloadUrl
+    if (profile.psaS3Key) {
+      psaUrl = await getSignedDownloadUrl(profile.psaS3Key);
+    }
+    if (profile.gradPhotoS3Key) {
+      gradPhotoUrl = await getSignedDownloadUrl(profile.gradPhotoS3Key);
+    }
     if (profile.awardsS3Key) {
       awardsUrl = await getSignedDownloadUrl(profile.awardsS3Key);
     }
@@ -60,6 +52,9 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
   const updateParam = params?.update;
   const showForm = !profile || updateParam === "1";
 
+  // Determine the status to pass to StatusBadge, defaulting if profile is null or status is undefined
+  const statusToDisplay = profile?.overallStatus || 'NOT_SUBMITTED';
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
       <Navbar />
@@ -67,7 +62,7 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
         <div className="w-full max-w-3xl flex flex-col items-center justify-center gap-12">
           <div className="flex flex-col gap-8 w-full">
             <h1 className="text-4xl text-center font-bold tracking-tighter sm:text-5xl md:text-6xl mb-2">
-              Welcome, {user.name?.trim() ? user.name : "Student"}!
+              Welcome, {user?.name?.trim() ? user.name : "Student"}!
             </h1>
             <p className="text-muted-foreground text-xl text-center mb-4">
               This is your graduation document dashboard.
@@ -82,7 +77,8 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                     <CardTitle>Profile Summary</CardTitle>
                     <CardDescription>Last updated: {new Date(profile.updatedAt).toLocaleString()}</CardDescription>
                   </div>
-                  <StatusBadge status={profile.status} className="text-sm" />
+                  {/* Use the determined status */}
+                  <StatusBadge status={statusToDisplay as any} className="text-sm" />
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -111,12 +107,25 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                 <div className="mt-6">
                   <div className="font-semibold mb-2">Your Documents:</div>
                   <ul className="space-y-2">
-                    <li>
-                      <a href={psaUrl!} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download PSA Certificate</a>
-                    </li>
-                    <li>
-                      <a href={gradPhotoUrl!} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download Graduation Photo</a>
-                    </li>
+                    {/* Add conditional rendering and null checks for URLs */}
+                    {psaUrl ? (
+                      <li>
+                        <a href={psaUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download PSA Certificate</a>
+                      </li>
+                    ) : (
+                      <li>
+                        <span className="text-muted-foreground">PSA Certificate: Not Submitted</span>
+                      </li>
+                    )}
+                    {gradPhotoUrl ? (
+                      <li>
+                        <a href={gradPhotoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download Graduation Photo</a>
+                      </li>
+                     ) : (
+                      <li>
+                        <span className="text-muted-foreground">Graduation Photo: Not Submitted</span>
+                      </li>
+                    )}
                     {awardsUrl && (
                       <li>
                         <a href={awardsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download Academic Awards</a>
@@ -124,9 +133,13 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                     )}
                   </ul>
                 </div>
-                {profile.status === "REJECTED" && (
+                {/* Check overallStatus for rejection feedback */}
+                {profile.overallStatus === "REJECTED" && (
                   <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-800 font-medium">Your submission has been rejected.</p>
+                    {profile.feedback && (
+                      <p className="text-red-700 text-sm mt-1 font-semibold">Feedback:</p>
+                    )}
                     {profile.feedback && (
                       <p className="text-red-700 text-sm mt-1">{profile.feedback}</p>
                     )}
@@ -138,8 +151,9 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
               </CardContent>
               <CardFooter>
                 <form method="GET" className="w-full">
+                  {/* Use overallStatus for button text */}
                   <Button type="submit" name="update" value="1" className="w-full mt-2">
-                    {profile.status === "REJECTED" ? "Resubmit Documents" : "Update Documents"}
+                    {profile.overallStatus === "REJECTED" ? "Resubmit Documents" : "Update Documents"}
                   </Button>
                 </form>
               </CardFooter>

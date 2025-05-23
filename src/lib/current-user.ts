@@ -1,7 +1,16 @@
 import { verifyAuthToken, getAuthCookie, type AuthPayload } from "./auth";
 import { prisma } from "@/db/prisma";
+import { Role } from "@prisma/client";
 
-export async function getCurrentUser() {
+// Export the User type
+export type User = {
+	id: string;
+	email: string;
+	name: string;
+	role: Role;
+};
+
+export async function getCurrentUser(): Promise<User | null> {
 	try {
 		const token = await getAuthCookie();
 
