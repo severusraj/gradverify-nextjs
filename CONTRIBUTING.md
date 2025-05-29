@@ -8,7 +8,7 @@ First off, thank you for considering contributing! 🙌 Your help makes this pro
 
 If you find a bug or have a feature request:
 
-- Check the [issues](https://github.com/almostJohn/gradverify/issues) to see if it's already reported.
+- Check the [issues](https://github.com/severusraj/gradverify-nextjs.git/issues) to see if it's already reported.
 - If not, open a new issue with a clear title and description.
 - Provide steps to reproduce, expected behavior, and screenshots if applicable.
 
@@ -27,7 +27,7 @@ We welcome all contributions, big or small!
 **2.** **Clone** your fork locally
 
 ```bash
-git clone https://github.com/almostJohn/gradverify.git
+git clone https://github.com/severusraj/gradverify-nextjs.git
 ```
 
 **3.** **Create a new branch** for your feature or fix

@@ -2,33 +2,16 @@
 
 A modern web application for verifying and managing graduate credentials at Gordon College. Built with Next.js, TypeScript, and Prisma.
 
-## Features
+## 🚀 Quick Start
 
-- 🔐 Secure authentication system
-- 👥 Role-based access control (Super Admin, Admin, Faculty, Student)
-- 📝 Document verification workflow
-- 📊 Analytics and reporting
-- 🎓 Award management
-- 📱 Responsive design
-- 🔍 Advanced search and filtering
+### Prerequisites
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
 - Node.js (v18.0.0 or higher)
 - npm (v9.0.0 or higher)
 - PostgreSQL (v14.0 or higher)
 - Git
 
-## System Requirements
-
-- **Operating System**: Windows 10/11, macOS, or Linux
-- **RAM**: Minimum 4GB (8GB recommended)
-- **Storage**: At least 1GB free space
-- **Processor**: Dual-core processor or better
-- **Browser**: Chrome, Firefox, Safari, or Edge (latest versions)
-
-## Installation
+### Installation Steps
 
 1. **Clone the repository**
    ```bash
@@ -43,9 +26,11 @@ Before you begin, ensure you have the following installed:
 
 3. **Set up environment variables**
    ```bash
-   cp .env.example .env
+   # Create .env file
+   touch .env
    ```
-   Edit `.env` with your configuration:
+
+   Add the following to your `.env` file:
    ```env
    # Database
    DATABASE_URL="postgresql://username:password@localhost:5432/gradverify"
@@ -64,23 +49,24 @@ Before you begin, ensure you have the following installed:
 
 4. **Set up the database**
    ```bash
+   # Generate Prisma client
    npx prisma generate
-   npx prisma db push
-   ```
 
-5. **Run database migrations**
-   ```bash
+   # Push the schema to your database
+   npx prisma db push
+
+   # Run migrations
    npx prisma migrate dev
    ```
 
-6. **Start the development server**
+5. **Start the development server**
    ```bash
    npm run dev
    ```
 
-The application will be available at `http://localhost:3000`
+   The application will be available at `http://localhost:3000`
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 gradverify-nextjs/
@@ -88,39 +74,66 @@ gradverify-nextjs/
 ├── public/             # Static assets
 ├── src/
 │   ├── app/           # Next.js app directory
+│   │   ├── api/       # API routes
+│   │   ├── auth/      # Authentication pages
+│   │   ├── dashboard/ # Dashboard pages
+│   │   └── settings/  # Settings pages
 │   ├── components/    # Reusable components
-│   ├── lib/          # Utility functions and configurations
+│   ├── lib/          # Utility functions
 │   └── styles/       # Global styles
-├── tests/            # Test files
-└── package.json      # Project dependencies and scripts
+└── package.json      # Project dependencies
 ```
 
-## Available Scripts
+## 🔧 Configuration
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests
-- `npm run prisma:studio` - Open Prisma Studio
+### Database Setup
 
-## Database Schema
+1. Install PostgreSQL if you haven't already
+2. Create a new database named `gradverify`
+3. Update the `DATABASE_URL` in your `.env` file with your database credentials
 
-The system uses PostgreSQL with the following main models:
-- Users (with role-based access)
-- Documents
-- Verifications
-- Awards
-- Departments
-- Programs
+### Authentication Setup
 
-## Role-Based Access
+1. Generate a secure secret for NextAuth:
+   ```bash
+   openssl rand -base64 32
+   ```
+2. Add the generated secret to your `.env` file as `NEXTAUTH_SECRET`
+
+### Creating Super Admin
+
+1. First, ensure your database is set up and migrations are run:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+2. Run the create-admin script:
+   ```bash
+   npx tsx scripts/create-admin.ts
+   ```
+
+3. Follow the prompts to create your superadmin account:
+   - Enter email address
+   - Enter password
+   - Confirm password
+
+4. Verify the superadmin was created:
+   ```bash
+   npx prisma studio
+   ```
+   Then check the User table for your new superadmin account.
+
+### Email Setup (Optional)
+
+1. Configure your email provider settings in the `.env` file
+2. Supported providers: SMTP, SendGrid, Amazon SES
+
+## 👥 User Roles
 
 1. **Super Admin**
    - Full system access
    - User management
    - System configuration
-   - Analytics and reporting
 
 2. **Admin**
    - Document verification
@@ -137,7 +150,46 @@ The system uses PostgreSQL with the following main models:
    - Status tracking
    - Profile management
 
-## Contributing
+## 🛠️ Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
+- `npm run prisma:studio` - Open Prisma Studio
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Issues**
+   - Verify PostgreSQL is running
+   - Check DATABASE_URL in .env
+   - Ensure database exists
+
+2. **Authentication Problems**
+   - Verify NEXTAUTH_SECRET is set
+   - Check NEXTAUTH_URL matches your environment
+   - Clear browser cookies if needed
+
+3. **Build Errors**
+   - Clear node_modules and reinstall
+   - Update dependencies
+   - Check TypeScript errors
+
+### Getting Help
+
+If you encounter any issues:
+1. Check the error logs
+2. Review the documentation
+3. Create an issue in the repository
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -145,17 +197,9 @@ The system uses PostgreSQL with the following main models:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+## 📞 Support
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## Support
-
-For support, email support@example.com or create an issue in the repository.
-
-## Acknowledgments
-
-- Gordon College
-- Next.js Team
-- Prisma Team
-- All contributors
+For support:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
