@@ -1,8 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "@/lib/auth/auth-utils";
-import { Role } from "@/generated/prisma";
 
 const prisma = new PrismaClient();
+
+// Define Role enum locally to match your schema
+const Role = {
+  STUDENT: "STUDENT",
+  ADMIN: "ADMIN",
+  FACULTY: "FACULTY",
+  SUPER_ADMIN: "SUPER_ADMIN"
+} as const;
+
+type RoleType = typeof Role[keyof typeof Role];
 
 const departments = [
   {
