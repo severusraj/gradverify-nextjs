@@ -22,7 +22,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { logoutUser } from "@/actions/auth.actions";
 import { toast } from "sonner";
 import { UserMenu } from "@/components/user-menu";
-import { getCurrentUser } from "@/lib/utils/current-user";
 
 const navItems = {
 	SUPER_ADMIN: [
@@ -148,8 +147,13 @@ export default function DashboardLayout({
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
-				const currentUser = await getCurrentUser();
-				setUser(currentUser);
+				const response = await fetch("/api/current-user");
+				const data = await response.json();
+				if (data.user) {
+					setUser(data.user);
+				} else {
+					router.push("/login");
+				}
 			} catch (error) {
 				console.error("Error fetching user:", error);
 				router.push("/login");
