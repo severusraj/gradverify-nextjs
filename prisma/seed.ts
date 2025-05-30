@@ -1,6 +1,8 @@
-import { prisma } from '../src/db/prisma';
+import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "@/lib/auth/auth-utils";
 import { Role } from "@/generated/prisma";
+
+const prisma = new PrismaClient();
 
 const departments = [
   {
