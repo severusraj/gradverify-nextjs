@@ -9,17 +9,12 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 export default function FacultyProfilePage() {
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-  });
   const [password, setPassword] = useState({
     current: "",
     new: "",
     confirm: "",
   });
   const [loading, setLoading] = useState(false);
-  const [profileErrors, setProfileErrors] = useState<{ name?: string; email?: string }>({});
   const [passwordErrors, setPasswordErrors] = useState<{ current?: string; new?: string; confirm?: string }>({});
   const [passwordServerError, setPasswordServerError] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<{
@@ -35,29 +30,6 @@ export default function FacultyProfilePage() {
     number: false,
     special: false,
   });
-
-  // Fetch current user on mount
-  useEffect(() => {
-    fetch("/api/current-user")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setProfile({ name: data.user.name, email: data.user.email });
-        }
-      });
-  }, []);
-
-  // Profile validation
-  useEffect(() => {
-    const errors: { name?: string; email?: string } = {};
-    if (!profile.name.trim() || profile.name.length < 2) {
-      errors.name = "Name must be at least 2 characters.";
-    }
-    if (!profile.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(profile.email)) {
-      errors.email = "Invalid email address.";
-    }
-    setProfileErrors(errors);
-  }, [profile]);
 
   // Password validation
   useEffect(() => {
@@ -97,29 +69,6 @@ export default function FacultyProfilePage() {
     setPasswordErrors(errors);
   }, [password]);
 
-  const handleSaveProfile = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/faculty/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profile),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Profile updated successfully");
-      } else {
-        toast.error(data.error || "Failed to update profile");
-      }
-    } catch (err) {
-      toast.error("Failed to update profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleChangePassword = async () => {
     setLoading(true);
     setPasswordServerError(null);
@@ -150,7 +99,7 @@ export default function FacultyProfilePage() {
         setPasswordServerError(data.error || "Failed to update password");
         toast.error(data.error || "Failed to update password");
       }
-    } catch (err) {
+    } catch {
       setPasswordServerError("Failed to update password");
       toast.error("Failed to update password");
     } finally {

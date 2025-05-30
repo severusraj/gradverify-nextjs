@@ -6,15 +6,18 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { toast } from "sonner";
 import Link from "next/link";
 
+type User = { email: string; role: string; name?: string } | null;
+type Errors = { name?: string; password?: string; newPassword?: string; confirmPassword?: string };
+
 export default function SettingsPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Errors>({});
 
   // Fetch user on mount
   useEffect(() => {
@@ -41,7 +44,7 @@ export default function SettingsPage() {
 
   // Live validation
   useEffect(() => {
-    const newErrors: any = {};
+    const newErrors: Errors = {};
     if (!name.trim() || name.length < 2) {
       newErrors.name = "Name must be at least 2 characters.";
     }

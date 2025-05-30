@@ -7,11 +7,10 @@ import { logoutUser } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 
-const [state, setState] = useState({ success: false, message: "" });
-const [isPending, startTransition] = useTransition();
-
 export function SuperadminLogoutButton() {
   const router = useRouter();
+  const [state, setState] = useState({ success: false, message: "" });
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state.success) {

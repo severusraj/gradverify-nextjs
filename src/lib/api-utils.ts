@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export type ApiResponse<T = any> = {
+export type ApiResponse<T = unknown> = {
   data?: T;
   error?: string;
   message?: string;

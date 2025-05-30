@@ -99,7 +99,7 @@ export default function AdminSettingsPage() {
         setPasswordServerError(data.error || "Failed to update password");
         toast.error(data.error || "Failed to update password");
       }
-    } catch (err) {
+    } catch {
       setPasswordServerError("Failed to update password");
       toast.error("Failed to update password");
     } finally {

@@ -49,9 +49,9 @@ export default function VerificationPage() {
           throw new Error(data.error || "Failed to fetch submissions");
         }
         setSubmissions(data.data);
-      } catch (err: any) {
-        setError(err.message || "Failed to load submissions");
-        console.error(err);
+      } catch (_err: unknown) {
+        setError(_err instanceof Error ? _err.message : "Failed to load submissions");
+        console.error(_err);
       } finally {
         setLoading(false);
       }
@@ -88,9 +88,9 @@ export default function VerificationPage() {
       const updatedResponse = await fetch(url.toString());
       const updatedData = await updatedResponse.json();
       setSubmissions(updatedData.data);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       toast.error(`Failed to ${action} submissions`);
-      console.error(err);
+      console.error(_err);
     }
   };
 

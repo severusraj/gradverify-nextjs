@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 
-async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (req.method !== "GET") {
     return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
   }
@@ -30,15 +30,11 @@ async function handler(req: NextRequest) {
     });
 
     return NextResponse.json({ data: submissions });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching verification submissions:", error);
     return NextResponse.json(
       { error: "Failed to fetch submissions" },
       { status: 500 }
     );
   }
-}
-
-export async function GET(req: NextRequest) {
-  return handler(req);
 }

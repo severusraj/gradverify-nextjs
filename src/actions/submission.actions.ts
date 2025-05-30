@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, AuthPayload } from "@/lib/auth";
 import { uploadToS3 } from "@/lib/s3";
 
 type SubmissionType = "PSA" | "GRADUATION_PHOTO" | "AWARD";
@@ -16,7 +16,7 @@ export async function createSubmission(
   formData: FormData,
 ): Promise<SubmissionResult> {
   try {
-    const user = await getSessionUser();
+    const user = await getSessionUser<AuthPayload>();
     
     if (!user) {
       return {
@@ -78,7 +78,6 @@ export async function createSubmission(
         pob: "Default Place of Birth",
         userId: user.id,
         gradPhotoS3Key: "placeholder-grad-photo-key",
-        user: { connect: { id: user.id } },
       },
     });
 

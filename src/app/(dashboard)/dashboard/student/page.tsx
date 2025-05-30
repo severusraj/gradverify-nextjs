@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import { SubmissionForm } from "@/components/forms/submission-form";
 import { prisma } from "@/db/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -11,13 +10,10 @@ import { Navbar } from "@/components/navbar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-type SubmissionType = "PSA" | "GRADUATION_PHOTO" | "AWARD";
-// type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "NOT_SUBMITTED"; // Using the type from StatusBadge component
-
-// No explicit type needed for Submission here as we fetch StudentProfile
+type User = { id: string; role: string; name?: string };
 
 export default async function StudentDashboard({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const user = await getSessionUser();
+  const user = await getSessionUser() as User | null;
 
   if (!user) {
     redirect("/login");
@@ -27,9 +23,12 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
     redirect("/dashboard");
   }
 
+  // At this point, user is guaranteed to be non-null
+  const userNonNull = user!;
+
   // Fetch student profile
   const profile = await prisma.studentProfile.findUnique({
-    where: { userId: user.id },
+    where: { userId: userNonNull.id },
   });
 
   // Prepare download URLs if profile exists
@@ -64,7 +63,7 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
         <div className="w-full max-w-3xl flex flex-col items-center justify-center gap-12">
           <div className="flex flex-col gap-8 w-full">
             <h1 className="text-4xl text-center font-bold tracking-tighter sm:text-5xl md:text-6xl mb-2">
-              Welcome, {user?.name?.trim() ? user.name : "Student"}!
+              Welcome, {userNonNull.name?.trim() ? userNonNull.name : "Student"}!
             </h1>
             <p className="text-muted-foreground text-xl text-center mb-4">
               This is your graduation document dashboard.
@@ -80,7 +79,7 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                     <CardDescription>Last updated: {new Date(profile.updatedAt).toLocaleString()}</CardDescription>
                   </div>
                   {/* Use the determined status */}
-                  <StatusBadge status={statusToDisplay as any} className="text-sm" />
+                  <StatusBadge status={statusToDisplay as "PENDING" | "APPROVED" | "REJECTED" | "NOT_SUBMITTED"} className="text-sm" />
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

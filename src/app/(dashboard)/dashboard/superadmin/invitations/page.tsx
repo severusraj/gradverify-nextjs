@@ -38,11 +38,11 @@ const templateLegend = [
   { var: "[Department]", desc: "Department name" },
 ];
 
-function replaceVars(template: string, recipient: any) {
+function replaceVars(template: string, recipient: Record<string, unknown>) {
   return template
-    .replace(/\[Name\]/g, recipient.name)
-    .replace(/\[Award\]/g, recipient.award || "")
-    .replace(/\[Department\]/g, recipient.department);
+    .replace(/\[Name\]/g, recipient.name as string)
+    .replace(/\[Award\]/g, (recipient.award as string) || "")
+    .replace(/\[Department\]/g, recipient.department as string);
 }
 
 function TiptapEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {

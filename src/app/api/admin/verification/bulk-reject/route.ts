@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 
-async function handler(req: NextRequest) {
+export async function POST(req: NextRequest) {
   if (req.method !== "POST") {
     return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
   }
@@ -22,15 +22,11 @@ async function handler(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Bulk reject error:", error);
     return NextResponse.json(
       { error: "Failed to reject submissions" },
       { status: 500 }
     );
   }
-}
-
-export async function POST(req: NextRequest) {
-  return handler(req);
 } 

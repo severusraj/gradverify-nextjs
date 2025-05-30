@@ -10,11 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { registerUser } from "@/actions/auth.actions";
 
-const [state, setState] = useState({ success: false, message: "" });
-const [isPending, startTransition] = useTransition();
-
 export function RegisterForm() {
 	const router = useRouter();
+	const [state, setState] = useState({ success: false, message: "" });
+	const [isPending, startTransition] = useTransition();
 
 	useEffect(() => {
 		if (state.success) {

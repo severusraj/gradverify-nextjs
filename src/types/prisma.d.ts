@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+/// <reference types="@prisma/client" />
 
 declare global {
   namespace Prisma {

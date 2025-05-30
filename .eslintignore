@@ -1,0 +1,25 @@
+# Aggressively ignore all generated and Prisma files
+src/generated/
+**/generated/
+**/prisma/
+
+# Generated Prisma files
+src/generated/prisma/**/*
+src/generated/prisma/runtime/**/*
+
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Cache
+.cache/
+
+# Ignore specific ESLint rules for generated files
+src/generated/prisma/wasm.js
+src/generated/prisma/runtime/wasm.js
+src/generated/**/* 

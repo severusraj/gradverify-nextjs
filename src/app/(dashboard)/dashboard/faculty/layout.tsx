@@ -48,7 +48,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to logout");
     }
   };

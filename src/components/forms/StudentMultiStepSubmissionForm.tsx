@@ -427,7 +427,7 @@ export default function StudentMultiStepSubmissionForm() {
                   />
                 )}
                 <p className="text-xs text-gray-400 mt-1">
-                  Accepted formats: JPEG, PNG, PDF (max 5MB). If you don't have any awards, you can leave this blank.
+                  Accepted formats: JPEG, PNG, PDF (max 5MB). If you don&apos;t have any awards, you can leave this blank.
                 </p>
               </div>
             </>

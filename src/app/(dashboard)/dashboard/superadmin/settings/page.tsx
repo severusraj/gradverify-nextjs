@@ -79,7 +79,7 @@ export default function SuperAdminSettingsPage() {
       } else {
         toast.error(data.error || "Failed to update profile");
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);
@@ -106,7 +106,7 @@ export default function SuperAdminSettingsPage() {
         setPasswordServerError(data.error || "Failed to update password");
         toast.error(data.error || "Failed to update password");
       }
-    } catch (err) {
+    } catch (_err) {
       setPasswordServerError("Failed to update password");
       toast.error("Failed to update password");
     } finally {

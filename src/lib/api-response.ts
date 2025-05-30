@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 type ApiResponseOptions = {
-  data?: any;
+  data?: unknown;
   message?: string;
   status?: number;
 };

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/db/prisma";
 import { uploadToS3 } from "@/lib/s3";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, type AuthPayload } from "@/lib/auth";
 
 export type StudentProfilePayload = {
   studentId: string;
@@ -25,7 +25,7 @@ export async function submitStudentProfile(
   formData: FormData
 ): Promise<StudentProfileResult> {
   try {
-    const user = await getSessionUser();
+    const user = await getSessionUser<AuthPayload>();
     if (!user) {
       return { success: false, message: "You must be logged in." };
     }
@@ -88,8 +88,12 @@ export async function submitStudentProfile(
     });
 
     return { success: true, message: "Profile and documents submitted successfully!" };
-  } catch (error: any) {
-    console.error(error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(error.message, error);
+    } else {
+      console.error(error);
+    }
     return { success: false, message: "Submission failed. Please try again." };
   }
 } 
