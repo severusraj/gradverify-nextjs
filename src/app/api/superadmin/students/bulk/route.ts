@@ -31,7 +31,7 @@ async function handler(req: NextRequest) {
           }
         },
         data: {
-          status,
+          overallStatus: status,
           ...(rejectionReason && { rejectionReason }),
         }
       });

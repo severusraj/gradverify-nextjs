@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useTransition, useState } from "react";
+import { useEffect, useTransition, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -17,12 +17,8 @@ const initialState = {
 export function ResendVerificationEmail() {
 	const router = useRouter();
 
+	const [state, setState] = useState({ success: false, message: "" });
 	const [isPending, startTransition] = useTransition();
-
-	const [state, formAction] = useActionState(
-		resendVerificationEmail,
-		initialState,
-	);
 
 	const [email, setEmail] = useState("");
 
@@ -54,7 +50,7 @@ export function ResendVerificationEmail() {
 		<form
 			action={(formData) => {
 				startTransition(() => {
-					formAction(formData);
+					resendVerificationEmail({ success: false, message: "" }, formData).then(setState);
 				});
 			}}
 			className="block p-6 w-full sm:w-96 rounded-md shadow-lg bg-background border"

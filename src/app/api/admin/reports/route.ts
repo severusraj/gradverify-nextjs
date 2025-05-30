@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAdmin } from "@/lib/api-middleware";
 import { prisma } from "@/db/prisma";
 import { format } from "date-fns";
 import { Parser } from "json2csv";
@@ -36,7 +35,7 @@ interface FormattedReport {
   filename: string;
 }
 
-export const GET = withAdmin(async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const period = searchParams.get('period') || 'monthly'; // Default to monthly
@@ -139,7 +138,7 @@ export const GET = withAdmin(async (req: NextRequest) => {
       }),
     };
 
-    const reportData: ReportData = {
+    const reportData = {
       totalSubmissions,
       submissionsByStatus,
       submissionsByMonth,
@@ -167,7 +166,7 @@ export const GET = withAdmin(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-});
+}
 
 async function generateFormattedReport(
   data: ReportData,

@@ -14,7 +14,7 @@ async function handler(req: NextRequest) {
     const award = searchParams.get("award") || "";
 
     // Build where clause
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (role && role !== "All") {
       where.role = role === "Graduate" ? "STUDENT" : role.toUpperCase();
     }
@@ -28,11 +28,12 @@ async function handler(req: NextRequest) {
     // Properly merge department and award filters
     if ((department && department !== "All") || (award && award !== "All")) {
       where.studentProfile = { is: {} };
+      const studentProfile = (where.studentProfile as { is: Record<string, unknown> }).is;
       if (department && department !== "All") {
-        where.studentProfile.is.department = { contains: department, mode: "insensitive" };
+        studentProfile.department = { contains: department, mode: "insensitive" };
       }
       if (award && award !== "All") {
-        where.studentProfile.is.awardsS3Key = { not: null };
+        studentProfile.awardsS3Key = { not: null };
       }
     }
 

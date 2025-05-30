@@ -24,7 +24,7 @@ async function handler(req: NextRequest) {
       const department = searchParams.get("department") || "";
 
       // Build where clause
-      const where: any = {
+      const where: Record<string, unknown> = {
         role: { in: ["ADMIN", "FACULTY"] }
       };
       if (search) {

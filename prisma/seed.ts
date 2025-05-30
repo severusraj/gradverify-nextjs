@@ -1,7 +1,6 @@
-import { PrismaClient, Role, SubmissionStatus } from '@prisma/client';
+import { prisma } from '../src/db/prisma';
 import { hashPassword } from '../src/lib/auth-utils';
-
-const prisma = new PrismaClient();
+import { Role } from "@/generated/prisma";
 
 const departments = [
   {
@@ -73,9 +72,9 @@ async function generateRandomStudent(index: number) {
         studentId: `2023${String(index).padStart(4, '0')}`,
         department: department.name,
         program: program,
-        psaStatus: status as SubmissionStatus,
-        awardStatus: status as SubmissionStatus,
-        overallStatus: status as SubmissionStatus,
+        psaStatus: status,
+        awardStatus: status,
+        overallStatus: status,
         dob: `${1995 + Math.floor(Math.random() * 10)}-01-01`,
         pob: "Olongapo City, Philippines",
         createdAt: createdAt,

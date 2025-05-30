@@ -4,18 +4,17 @@ import { getCurrentUser } from "./current-user";
 // Define Role type to match Prisma schema
 export type Role = "SUPER_ADMIN" | "ADMIN" | "FACULTY" | "STUDENT";
 
-export type ApiHandler = (
-  req: NextRequest,
-  context: { params: Record<string, string> }
-) => Promise<NextResponse>;
+export type ApiHandler<T = any> =
+  | ((req: NextRequest) => Promise<NextResponse>)
+  | ((req: NextRequest, context: { params: T }) => Promise<NextResponse>);
 
 export type RoleConfig = {
   allowedRoles: Role[];
   requireAuth?: boolean;
 };
 
-export function withApiAuth(handler: ApiHandler, config: RoleConfig) {
-  return async (req: NextRequest, context: { params: Record<string, string> }) => {
+export function withApiAuth<T = any>(handler: ApiHandler<T>, config: RoleConfig) {
+  return async (req: NextRequest, context: { params: T }) => {
     try {
       // Check authentication if required
       if (config.requireAuth !== false) {
@@ -37,8 +36,11 @@ export function withApiAuth(handler: ApiHandler, config: RoleConfig) {
         }
       }
 
-      // Call the original handler
-      return await handler(req, context);
+      if (handler.length === 2) {
+        return await (handler as (req: NextRequest, context: { params: T }) => Promise<NextResponse>)(req, context);
+      } else {
+        return await (handler as (req: NextRequest) => Promise<NextResponse>)(req);
+      }
     } catch (error) {
       console.error("API Error:", error);
       return NextResponse.json(
@@ -50,7 +52,7 @@ export function withApiAuth(handler: ApiHandler, config: RoleConfig) {
 }
 
 // Helper function to create role-based API handlers
-export function createRoleBasedHandler(handler: ApiHandler, roles: Role[]) {
+export function createRoleBasedHandler<T = any>(handler: ApiHandler<T>, roles: Role[]) {
   return withApiAuth(handler, {
     allowedRoles: roles,
     requireAuth: true,
@@ -58,11 +60,11 @@ export function createRoleBasedHandler(handler: ApiHandler, roles: Role[]) {
 }
 
 // Predefined role-based handlers
-export const withSuperAdmin = (handler: ApiHandler) => 
+export const withSuperAdmin = <T = any>(handler: ApiHandler<T>) => 
   createRoleBasedHandler(handler, ["SUPER_ADMIN"]);
 
-export const withAdmin = (handler: ApiHandler) => 
+export const withAdmin = <T = any>(handler: ApiHandler<T>) => 
   createRoleBasedHandler(handler, ["SUPER_ADMIN", "ADMIN"]);
 
-export const withFaculty = (handler: ApiHandler) => 
+export const withFaculty = <T = any>(handler: ApiHandler<T>) => 
   createRoleBasedHandler(handler, ["SUPER_ADMIN", "ADMIN", "FACULTY"]); 

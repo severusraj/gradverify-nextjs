@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withAdmin } from "@/lib/api-middleware";
 
 async function handler(req: NextRequest) {
   if (req.method !== "GET") {
@@ -12,7 +11,7 @@ async function handler(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || undefined;
 
-    const where: any = {
+    const where: Record<string, unknown> = {
       ...(status && status !== "ALL" ? { overallStatus: status } : {}),
       OR: [
         { user: { name: { contains: search, mode: "insensitive" } } },
@@ -40,4 +39,6 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const GET = withAdmin(handler);
+export async function GET(req: NextRequest) {
+  return handler(req);
+}

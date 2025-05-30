@@ -8,7 +8,7 @@ import { z } from "zod";
 const querySchema = z.object({
   page: z.string().optional().transform(val => parseInt(val || "1")),
   limit: z.string().optional().transform(val => parseInt(val || "10")),
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+  overallStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
   search: z.string().optional(),
   hasAwards: z.string().optional(),
 });
@@ -24,12 +24,12 @@ async function handler(req: NextRequest) {
       return apiResponse({ error: "Invalid query parameters" }, 400);
     }
     
-    const { page = 1, limit = 10, status, search, hasAwards } = validation.data;
+    const { page = 1, limit = 10, overallStatus, search, hasAwards } = validation.data;
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
-      ...(status && { status }),
+    const where: Record<string, unknown> = {
+      ...(overallStatus && { overallStatus }),
       ...(search && {
         OR: [
           { studentId: { contains: search } },

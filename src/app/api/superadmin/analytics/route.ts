@@ -3,7 +3,6 @@ import { prisma } from "@/db/prisma";
 import { withSuperAdmin } from "@/lib/api-middleware";
 import { apiResponse, handleApiError } from "@/lib/api-utils";
 import { subDays, formatISO, startOfDay } from "date-fns";
-import { SubmissionStatus } from '@prisma/client';
 
 export const runtime = "nodejs";
 
@@ -24,7 +23,7 @@ async function handler(req: NextRequest) {
       });
 
       // Get verification status counts (using overallStatus via raw SQL)
-      const verificationStats: { overallStatus: SubmissionStatus; count: bigint }[] = await prisma.$queryRaw`
+      const verificationStats: { overallStatus: string; count: bigint }[] = await prisma.$queryRaw`
         SELECT "overallStatus", COUNT(*) as count
         FROM "StudentProfile"
         GROUP BY "overallStatus"
@@ -72,7 +71,7 @@ async function handler(req: NextRequest) {
           const day = subDays(today, days - 1 - i);
           const nextDay = subDays(today, days - 2 - i);
           return prisma.$queryRaw<{
-            overallStatus: SubmissionStatus;
+            overallStatus: string;
             count: bigint;
           }[]>`
             SELECT "overallStatus", COUNT(*) as count
@@ -82,10 +81,10 @@ async function handler(req: NextRequest) {
           `.then(results => ({
             date: formatISO(day, { representation: 'date' }),
             submissions: results.reduce((sum, r) => sum + Number(r.count), 0),
-            approved: results.find(r => r.overallStatus === SubmissionStatus.APPROVED)?.count ? Number(results.find(r => r.overallStatus === SubmissionStatus.APPROVED)?.count) : 0,
-            rejected: results.find(r => r.overallStatus === SubmissionStatus.REJECTED)?.count ? Number(results.find(r => r.overallStatus === SubmissionStatus.REJECTED)?.count) : 0,
-            pending: results.find(r => r.overallStatus === SubmissionStatus.PENDING)?.count ? Number(results.find(r => r.overallStatus === SubmissionStatus.PENDING)?.count) : 0,
-            not_submitted: results.find(r => r.overallStatus === SubmissionStatus.NOT_SUBMITTED)?.count ? Number(results.find(r => r.overallStatus === SubmissionStatus.NOT_SUBMITTED)?.count) : 0,
+            approved: results.find(r => r.overallStatus === "APPROVED")?.count ? Number(results.find(r => r.overallStatus === "APPROVED")?.count) : 0,
+            rejected: results.find(r => r.overallStatus === "REJECTED")?.count ? Number(results.find(r => r.overallStatus === "REJECTED")?.count) : 0,
+            pending: results.find(r => r.overallStatus === "PENDING")?.count ? Number(results.find(r => r.overallStatus === "PENDING")?.count) : 0,
+            not_submitted: results.find(r => r.overallStatus === "NOT_SUBMITTED")?.count ? Number(results.find(r => r.overallStatus === "NOT_SUBMITTED")?.count) : 0,
           }));
         })
       );
@@ -101,7 +100,7 @@ async function handler(req: NextRequest) {
           const approvedTimes: { createdAt: Date; updatedAt: Date }[] = await prisma.$queryRaw`
             SELECT "createdAt", "updatedAt"
             FROM "StudentProfile"
-            WHERE "program" = ${program} AND "overallStatus" = ${SubmissionStatus.APPROVED}::"SubmissionStatus"
+            WHERE "program" = ${program} AND "overallStatus" = ${"APPROVED"}::"SubmissionStatus"
             AND "updatedAt" IS NOT NULL AND "createdAt" IS NOT NULL
           `;
           const times = approvedTimes
@@ -123,12 +122,12 @@ async function handler(req: NextRequest) {
       });
 
       // Format verification stats to include all possible statuses from the enum
-      const allStatuses = Object.values(SubmissionStatus);
+      const allStatuses = ["APPROVED", "REJECTED", "PENDING", "NOT_SUBMITTED"];
       const formattedVerificationStats = allStatuses.reduce((acc, status) => {
         const stat = verificationStats.find(s => s.overallStatus === status);
         acc[status] = stat ? Number(stat.count) : 0;
         return acc;
-      }, {} as Record<SubmissionStatus, number>);
+      }, {} as Record<string, number>);
 
       return apiResponse({
         userStats: userStats.reduce((acc, curr) => ({ ...acc, [curr.role]: curr._count }), {}),

@@ -146,6 +146,8 @@ export default function VerificationManagementPage() {
     setPsaLoading(true);
     setPsaUrl(null);
     try {
+      const student = requests.find(r => r.id === studentId);
+      setViewRequest(student);
       const res = await fetch(`/api/superadmin/verification/psa-url?studentId=${studentId}`);
       const data = await res.json();
       if (res.ok && data.data?.url) {
@@ -366,26 +368,30 @@ export default function VerificationManagementPage() {
                           <DropdownMenuItem onClick={() => handleViewPSA(request.id)}>
                             View PSA
                           </DropdownMenuItem>
-                          {request.psaStatus === "PENDING" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleAction(request, "APPROVED", "PSA")}>
-                                Approve PSA
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleAction(request, "REJECTED", "PSA")}>
-                                Reject PSA
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                          {request.awardStatus === "PENDING" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleAction(request, "APPROVED", "AWARD")}>
-                                Approve Award
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleAction(request, "REJECTED", "AWARD")}>
-                                Reject Award
-                              </DropdownMenuItem>
-                            </>
-                          )}
+                          <DropdownMenuItem
+                            onClick={() => handleAction(request, "APPROVED", "PSA")}
+                            disabled={request.psaStatus !== "PENDING"}
+                          >
+                            Approve PSA
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleAction(request, "REJECTED", "PSA")}
+                            disabled={request.psaStatus !== "PENDING"}
+                          >
+                            Reject PSA
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleAction(request, "APPROVED", "AWARD")}
+                            disabled={request.awardStatus !== "PENDING"}
+                          >
+                            Approve Award
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleAction(request, "REJECTED", "AWARD")}
+                            disabled={request.awardStatus !== "PENDING"}
+                          >
+                            Reject Award
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -533,6 +539,15 @@ export default function VerificationManagementPage() {
                   <div className="border rounded-md overflow-hidden">
                     <img src={psaUrl} alt="PSA Document" className="max-w-full h-auto" />
                   </div>
+                  <a
+                    href={psaUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Download PSA
+                  </a>
                 </div>
               )}
             </div>

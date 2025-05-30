@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAdmin } from "@/lib/api-middleware";
 import { prisma } from "@/db/prisma";
 import bcrypt from "bcryptjs";
 import { getCurrentUser } from "@/lib/current-user";
 
-export const POST = withAdmin(async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   try {
     const { currentPassword, newPassword } = await req.json();
 
@@ -51,4 +50,4 @@ export const POST = withAdmin(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-}); 
+} 
