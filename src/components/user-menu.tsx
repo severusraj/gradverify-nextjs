@@ -37,7 +37,7 @@ export function UserMenu({ user }: UserMenuProps) {
 				<Button
 					variant="ghost"
 					size="icon"
-					className="hover:bg-transparent rounded-full"
+					className="hover:bg-transparent rounded-full transition-colors"
 				>
 					<Avatar>
 						<AvatarFallback className="bg-blue-500 text-white">
@@ -53,12 +53,12 @@ export function UserMenu({ user }: UserMenuProps) {
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link href={dashboardPath} className="flex gap-2">
+					<Link href={dashboardPath} className="flex gap-2 transition-colors" prefetch={true}>
 						<LayoutDashboardIcon className="size-4" /> Dashboard
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
-					<Link href="/dashboard/settings" className="flex gap-2">
+					<Link href="/dashboard/settings" className="flex gap-2 transition-colors" prefetch={true}>
 						<Settings2Icon className="size-4" /> Settings
 					</Link>
 				</DropdownMenuItem>

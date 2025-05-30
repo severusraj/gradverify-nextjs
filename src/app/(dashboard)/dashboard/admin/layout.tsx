@@ -2,29 +2,43 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   CheckCircle2,
   FileText,
+  Settings,
   Menu,
   LogOut,
-  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { logoutUser } from "@/actions/auth.actions";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-  items: {
-    href: string;
-    title: string;
-    icon: React.ReactNode;
-  }[];
-}
+const navItems = [
+  {
+    href: "/dashboard/admin",
+    title: "Overview",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/admin/verification",
+    title: "Verification",
+    icon: <CheckCircle2 className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/admin/reports",
+    title: "Reports",
+    icon: <FileText className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/admin/settings",
+    title: "Settings",
+    icon: <Settings className="w-4 h-4" />,
+  },
+];
 
 export default function AdminLayout({
   children,
@@ -32,30 +46,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
   const router = useRouter();
-
-  const navItems = [
-    {
-      href: "/dashboard/admin",
-      title: "Overview",
-      icon: <LayoutDashboard className="w-4 h-4" />,
-    },
-    {
-      href: "/dashboard/admin/verification",
-      title: "Verification",
-      icon: <CheckCircle2 className="w-4 h-4" />,
-    },
-    {
-      href: "/dashboard/admin/reports",
-      title: "Reports",
-      icon: <FileText className="w-4 h-4" />,
-    },
-    {
-      href: "/dashboard/admin/settings",
-      title: "Settings",
-      icon: <Settings className="w-4 h-4" />,
-    },
-  ];
 
   const handleLogout = async () => {
     try {
@@ -76,7 +68,7 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen w-64 border-r bg-background transition-transform",
+          "fixed left-0 top-0 z-40 h-screen w-64 border-r bg-background transition-transform duration-200 ease-in-out",
           !sidebarOpen && "-translate-x-full"
         )}
       >
@@ -89,9 +81,10 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent",
-                  usePathname() === item.href && "bg-accent"
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent",
+                  pathname === item.href && "bg-accent"
                 )}
               >
                 {item.icon}
@@ -115,7 +108,7 @@ export default function AdminLayout({
       {/* Main Content */}
       <div
         className={cn(
-          "flex-1 transition-margin",
+          "flex-1 transition-all duration-200 ease-in-out",
           sidebarOpen ? "ml-64" : "ml-0"
         )}
       >

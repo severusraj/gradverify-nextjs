@@ -69,6 +69,8 @@ export async function submitStudentProfile(
         psaS3Key: psaKey,
         gradPhotoS3Key: gradPhotoKey,
         awardsS3Key: awardsKey,
+        psaStatus: "PENDING",
+        overallStatus: "PENDING",
       },
       create: {
         userId: user.id,
@@ -80,6 +82,8 @@ export async function submitStudentProfile(
         psaS3Key: psaKey,
         gradPhotoS3Key: gradPhotoKey,
         awardsS3Key: awardsKey,
+        psaStatus: "PENDING",
+        overallStatus: "PENDING",
       },
     });
 

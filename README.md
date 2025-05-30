@@ -128,6 +128,59 @@ gradverify-nextjs/
 1. Configure your email provider settings in the `.env` file
 2. Supported providers: SMTP, SendGrid, Amazon SES
 
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflows
+
+The project uses GitHub Actions for continuous integration and deployment. Here's what's set up:
+
+#### ✅ CI Checks
+- [ ] **Lint Check**
+  - Runs ESLint
+  - Checks code formatting
+  - Verifies TypeScript types
+
+- [ ] **Build Check**
+  - Verifies Next.js build
+  - Checks for build errors
+  - Validates static generation
+
+- [ ] **Test Suite**
+  - Runs unit tests
+  - Executes integration tests
+  - Reports test coverage
+
+#### 🚀 Deployment
+- [ ] **Development**
+  - Automatic deployment to development environment
+  - Runs on push to `development` branch
+  - Includes database migrations
+
+- [ ] **Production**
+  - Manual deployment to production
+  - Triggered by release tags
+  - Includes security checks
+
+### Setting Up CI/CD
+
+1. **Enable GitHub Actions**
+   - Go to repository Settings
+   - Navigate to Actions > General
+   - Enable "Allow all actions and reusable workflows"
+
+2. **Configure Secrets**
+   Add the following secrets in repository Settings > Secrets:
+   - `DATABASE_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL`
+   - `EMAIL_SERVER_*` (if using email)
+
+3. **Branch Protection**
+   Set up branch protection rules:
+   - Require pull request reviews
+   - Require status checks to pass
+   - Require branches to be up to date
+
 ## 👥 User Roles
 
 1. **Super Admin**

@@ -6,15 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Users,
-  CheckCircle2,
-  Award,
-  FileText,
-  Settings,
+  User,
   Menu,
-  LineChart,
-  Send,
   LogOut,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,52 +18,23 @@ import { toast } from "sonner";
 
 const navItems = [
   {
-    href: "/dashboard/superadmin",
-    title: "Overview",
+    href: "/dashboard/faculty",
+    title: "Dashboard",
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/superadmin/analytics",
-    title: "Analytics",
-    icon: <LineChart className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/superadmin/verification",
+    href: "/dashboard/faculty/verification",
     title: "Verification",
-    icon: <CheckCircle2 className="w-4 h-4" />,
+    icon: <Check className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/superadmin/users",
-    title: "User Management",
-    icon: <Users className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/superadmin/awards",
-    title: "Awards",
-    icon: <Award className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/superadmin/reports",
-    title: "Reports",
-    icon: <FileText className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/superadmin/settings",
-    title: "Settings",
-    icon: <Settings className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/superadmin/invitations",
-    title: "Invitations",
-    icon: <Send className="w-4 h-4" />,
+    href: "/dashboard/faculty/profile",
+    title: "Profile",
+    icon: <User className="w-4 h-4" />,
   },
 ];
 
-export default function SuperAdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function FacultyLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
@@ -97,7 +63,7 @@ export default function SuperAdminLayout({
         )}
       >
         <div className="flex h-14 items-center border-b px-4">
-          <span className="font-semibold">Super Admin</span>
+          <span className="font-semibold">Faculty Dashboard</span>
         </div>
         <ScrollArea className="h-[calc(100vh-3.5rem)] flex flex-col justify-between">
           <div className="space-y-1 p-2">
