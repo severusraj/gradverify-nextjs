@@ -11,7 +11,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { User } from "@/lib/current-user";
+import { User } from "@/lib/utils/current-user";
 import { LayoutDashboardIcon, Settings2Icon } from "lucide-react";
 import { LogoutMenuItem } from "./logout-button";
 

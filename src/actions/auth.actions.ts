@@ -4,12 +4,12 @@ import { prisma } from "@/db/prisma";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import { addMinutes } from "date-fns";
-import { signAuthToken, setAuthCookie, removeAuthCookie } from "@/lib/auth";
-import { NAME_LENGTH, PASSWORD_LENGTH } from "@/lib/constants";
-import { sendVerificationEmail } from "@/lib/mailer";
+import { signAuthToken, setAuthCookie, removeAuthCookie } from "@/lib/auth/auth";
+import { NAME_LENGTH, PASSWORD_LENGTH } from "@/lib/utils/constants";
+import { sendVerificationEmail } from "@/lib/utils/mailer";
 import { Resend } from "resend";
 import { LoginInfoMessage } from "@/components/mail/login-info-message";
-import { getCurrentUser } from "@/lib/current-user";
+import { getCurrentUser } from "@/lib/utils/current-user";
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "FACULTY" | "STUDENT";
 
@@ -343,7 +343,7 @@ export async function createUserAsSuperAdmin({ name, email, password, role }: { 
 
 		// Send welcome email
 		await resend.emails.send({
-			from: "GradVerify <onboarding@resend.dev>",
+			from: "GradVerify <noreply@gc-gradverify.site>",
 			to: user.email,
 			subject: `Welcome to GradVerify! ${user.name}`,
 			react: LoginInfoMessage({

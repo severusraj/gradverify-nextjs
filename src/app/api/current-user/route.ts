@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/current-user";
+import { getCurrentUser } from "@/lib/utils/current-user";
 import { NextResponse } from "next/server";
 
 export async function GET() {

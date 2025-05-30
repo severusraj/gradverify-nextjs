@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { CreateUserDialog } from "@/components/dialogs/create-user-dialog";
 import { UserManagementTable } from "@/components/tables/user-management-table";
-import type { User } from "@/lib/current-user";
+import type { User } from "@/lib/utils/current-user";
 
 export default function UserManagementPage() {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withSuperAdmin } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
+import { withSuperAdmin } from "@/lib/api/api-middleware";
+import { apiResponse, handleApiError } from "@/lib/api/api-utils";
 import { z } from "zod";
 import { subDays, startOfDay, endOfDay } from "date-fns";
 import { Parser } from "json2csv";

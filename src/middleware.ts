@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSessionUserWithStatus, type AuthPayload } from "./lib/auth-edge";
-import { SESSION_TOKEN } from "./lib/constants";
+import { getSessionUserWithStatus, type AuthPayload } from "@/lib/auth/auth-edge";
+import { SESSION_TOKEN } from "@/lib/utils/constants";
 
 const roleRoutes = {
 	"/dashboard/superadmin": "SUPER_ADMIN",

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/db/prisma";
 import { z } from "zod";
-import { hashPassword } from "@/lib/auth-utils";
+import { hashPassword } from "@/lib/auth/auth-utils";
 
 const userSchema = z.object({
   name: z.string().min(2).max(100),

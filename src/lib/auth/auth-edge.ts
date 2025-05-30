@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { SESSION_TOKEN } from "./constants";
+import { SESSION_TOKEN } from "@/lib/utils/constants";
 
 const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 

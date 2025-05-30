@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { withSuperAdmin } from "@/lib/middleware/with-superadmin";
-import { apiResponse } from "@/lib/api-response";
-import { handleApiError } from "@/lib/api-error";
-import { getAuditLogs } from "@/lib/audit-logger";
+import { apiResponse } from "@/lib/api/api-response";
+import { handleApiError } from "@/lib/api/api-error";
+import { getAuditLogs } from "@/lib/utils/audit-logger";
 import { z } from "zod";
 
 const querySchema = z.object({

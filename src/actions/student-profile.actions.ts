@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
-import { uploadToS3 } from "@/lib/s3";
-import { getSessionUser, type AuthPayload } from "@/lib/auth";
+import { uploadToS3 } from "@/lib/utils/s3";
+import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
 import { z } from "zod";
 
 export type StudentProfilePayload = {

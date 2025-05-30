@@ -3,7 +3,7 @@
 import { forwardRef, ElementRef, ComponentPropsWithoutRef, ReactElement } from "react"
 import { X } from "lucide-react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 
 const ToastProvider = ToastPrimitives.Provider
 

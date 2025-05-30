@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
-import { getCurrentUser } from "@/lib/current-user";
+import { getCurrentUser } from "@/lib/utils/current-user";
 import bcrypt from "bcryptjs";
 
 export async function facultyVerifyDocument({ studentId, action, feedback }: {

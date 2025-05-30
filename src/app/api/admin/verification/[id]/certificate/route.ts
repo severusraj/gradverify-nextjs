@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { getSignedDownloadUrl } from "@/lib/s3";
-import { getCurrentUser } from "@/lib/current-user";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
+import { getCurrentUser } from "@/lib/utils/current-user";
 
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
   // Role check

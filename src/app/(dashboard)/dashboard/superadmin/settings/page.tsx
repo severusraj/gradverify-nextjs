@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { superadminChangePassword, updateProfile } from "@/actions/superadmin-settings.actions";
 
 export default function SuperAdminSettingsPage() {
   const [profile, setProfile] = useState({
@@ -66,21 +68,19 @@ export default function SuperAdminSettingsPage() {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/superadmin/settings/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profile),
+      const result = await updateProfile({
+        name: profile.name,
+        email: profile.email,
       });
-      const data = await res.json();
-      if (res.ok) {
+      
+      if (result.success) {
         toast.success("Profile updated successfully");
       } else {
-        toast.error(data.error || "Failed to update profile");
+        toast.error(result.message);
       }
-    } catch (_err) {
-      toast.error("Failed to update profile");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -90,25 +90,24 @@ export default function SuperAdminSettingsPage() {
     setLoading(true);
     setPasswordServerError(null);
     try {
-      const res = await fetch("/api/superadmin/settings/password", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(password),
+      const result = await superadminChangePassword({
+        current: password.current,
+        new: password.new,
+        confirm: password.confirm,
       });
-      const data = await res.json();
-      if (res.ok) {
+      
+      if (result.success) {
         toast.success("Password updated successfully");
         setPassword({ current: "", new: "", confirm: "" });
         setPasswordServerError(null);
       } else {
-        setPasswordServerError(data.error || "Failed to update password");
-        toast.error(data.error || "Failed to update password");
+        setPasswordServerError(result.message);
+        toast.error(result.message);
       }
-    } catch (_err) {
-      setPasswordServerError("Failed to update password");
-      toast.error("Failed to update password");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update password";
+      setPasswordServerError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

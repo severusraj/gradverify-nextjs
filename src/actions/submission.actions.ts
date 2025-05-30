@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
-import { getSessionUser, AuthPayload } from "@/lib/auth";
-import { uploadToS3 } from "@/lib/s3";
+import { getSessionUser, AuthPayload } from "@/lib/auth/auth";
+import { uploadToS3 } from "@/lib/utils/s3";
 
 type SubmissionType = "PSA" | "GRADUATION_PHOTO" | "AWARD";
 

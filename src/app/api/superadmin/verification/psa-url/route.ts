@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withSuperAdmin } from "@/lib/api-middleware";
-import { getSignedDownloadUrl } from "@/lib/s3";
-import { apiResponse } from "@/lib/api-utils";
+import { withSuperAdmin } from "@/lib/api/api-middleware";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
+import { apiResponse } from "@/lib/api/api-utils";
 
 export const runtime = "nodejs";
 

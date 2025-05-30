@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { getSignedDownloadUrl } from "@/lib/s3";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
 export async function GET(req: NextRequest) {
   const studentId = req.nextUrl.searchParams.get("studentId");
