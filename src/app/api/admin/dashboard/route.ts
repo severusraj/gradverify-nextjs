@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 import { withAdmin } from "@/lib/api-middleware";
 
-async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (req.method !== "GET") {
     return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
   }
@@ -52,6 +52,4 @@ async function handler(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-export const GET = withAdmin(handler); 
+} 
