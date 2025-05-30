@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getSignedDownloadUrl } from "@/lib/s3";
 import { Button } from "@/components/ui/button";
-import StudentMultiStepSubmissionForm from "@/components/forms/StudentMultiStepSubmissionForm";
+import StudentMultiStepSubmissionForm from "@/components/forms/student-multi-step-submission-form";
 import { Navbar } from "@/components/navbar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";

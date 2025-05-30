@@ -1,4 +1,4 @@
-import { verifyAuthToken, getAuthCookie, type AuthPayload } from "./auth";
+import { verifyAuthToken, getAuthCookie, type AuthPayload } from "../auth/auth";
 import { prisma } from "@/db/prisma";
 
 // Export the User type

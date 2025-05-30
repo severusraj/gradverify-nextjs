@@ -1,5 +1,3 @@
-"use server";
-
 import { ResendVerificationEmail } from "@/components/forms/resend-verification-email-form";
 import { prisma } from "@/db/prisma";
 import { redirect } from "next/navigation";
