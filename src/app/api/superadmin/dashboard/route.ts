@@ -22,17 +22,17 @@ async function handler(req: NextRequest) {
       
       // Pending students count
       prisma.studentProfile.count({ 
-        where: { status: "PENDING" } 
+        where: { overallStatus: "PENDING" } 
       }),
       
       // Approved students count
       prisma.studentProfile.count({ 
-        where: { status: "APPROVED" } 
+        where: { overallStatus: "APPROVED" } 
       }),
       
       // Rejected students count
       prisma.studentProfile.count({ 
-        where: { status: "REJECTED" } 
+        where: { overallStatus: "REJECTED" } 
       }),
       
       // Total users count (excluding students)
@@ -65,7 +65,7 @@ async function handler(req: NextRequest) {
           _all: true,
         },
         where: {
-          status: "APPROVED"
+          overallStatus: "APPROVED"
         }
       }),
       

@@ -45,13 +45,13 @@ async function handler(req: NextRequest) {
       // Total counts
       prisma.studentProfile.count({ where: dateFilter }),
       prisma.studentProfile.count({ 
-        where: { ...dateFilter, status: "PENDING" } 
+        where: { ...dateFilter, overallStatus: "PENDING" } 
       }),
       prisma.studentProfile.count({ 
-        where: { ...dateFilter, status: "APPROVED" } 
+        where: { ...dateFilter, overallStatus: "APPROVED" } 
       }),
       prisma.studentProfile.count({ 
-        where: { ...dateFilter, status: "REJECTED" } 
+        where: { ...dateFilter, overallStatus: "REJECTED" } 
       }),
       prisma.user.count(),
       

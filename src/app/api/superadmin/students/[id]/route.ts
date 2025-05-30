@@ -1,71 +1,66 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withSuperAdmin } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
+import { getCurrentUser } from "@/lib/current-user";
 import { z } from "zod";
 
 // Validation schema for request body
 const updateSchema = z.object({
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
+  psaStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+  awardStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+  overallStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
   rejectionReason: z.string().optional(),
 });
 
-async function handler(
-  req: NextRequest,
-  context: { params: Record<string, string> }
-) {
-  try {
-    const { id } = context.params;
-
-    // Verify student profile exists
-    const student = await prisma.studentProfile.findUnique({
-      where: { id },
-      include: { user: true },
-    });
-
-    if (!student) {
-      return apiResponse({ error: "Student profile not found" }, 404);
-    }
-
-    if (req.method === "GET") {
-      return apiResponse({ student });
-    }
-
-    if (req.method === "PUT") {
-      const body = await req.json();
-      const validation = updateSchema.safeParse(body);
-      
-      if (!validation.success) {
-        return apiResponse({ error: "Invalid request body" }, 400);
-      }
-
-      const { status, rejectionReason } = validation.data;
-
-      // Update student profile
-      const updatedStudent = await prisma.studentProfile.update({
-        where: { id },
-        data: {
-          status,
-          ...(rejectionReason && { rejectionReason }),
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-
-      return apiResponse({ student: updatedStudent });
-    }
-
-    return apiResponse({ error: "Method not allowed" }, 405);
-  } catch (error) {
-    return handleApiError(error);
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  const { id } = context.params;
+  if (!id) {
+    return NextResponse.json({ error: "Student ID is required" }, { status: 400 });
+  }
+  const student = await prisma.studentProfile.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+  if (!student) {
+    return NextResponse.json({ error: "Student profile not found" }, { status: 404 });
+  }
+  return NextResponse.json({ student });
 }
 
-export const GET = withSuperAdmin(handler);
-export const PUT = withSuperAdmin(handler); 
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const { id } = context.params;
+  if (!id) {
+    return NextResponse.json({ error: "Student ID is required" }, { status: 400 });
+  }
+  const body = await req.json();
+  const validation = updateSchema.safeParse(body);
+  if (!validation.success) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { psaStatus, awardStatus, overallStatus, rejectionReason } = validation.data;
+  const updatedStudent = await prisma.studentProfile.update({
+    where: { id },
+    data: {
+      ...(psaStatus && { psaStatus }),
+      ...(awardStatus && { awardStatus }),
+      ...(overallStatus && { overallStatus }),
+      ...(rejectionReason && { rejectionReason }),
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+  return NextResponse.json({ student: updatedStudent });
+} 

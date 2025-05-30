@@ -1,23 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { logoutUser } from "@/actions/auth.actions";
 import { DropdownMenuItem } from "./ui/dropdown-menu";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
-
-const initialState = {
-	success: false,
-	message: "",
-};
+import { Button } from "./ui/button";
 
 export function LogoutMenuItem() {
-	const router = useRouter();
-
+	const [state, setState] = useState({ success: false, message: "" });
 	const [isPending, startTransition] = useTransition();
-
-	const [state, formAction] = useActionState(logoutUser, initialState);
+	const router = useRouter();
 
 	useEffect(() => {
 		if (state.success) {
@@ -32,12 +26,16 @@ export function LogoutMenuItem() {
 		<form
 			action={() => {
 				startTransition(() => {
-					formAction();
+					logoutUser().then(setState);
 				});
 			}}
 		>
 			<DropdownMenuItem disabled={isPending} asChild>
-				<button type="submit" className="flex gap-2 w-full">
+				<Button
+					type="submit"
+					className="flex gap-2 w-full"
+					disabled={isPending}
+				>
 					{isPending ? (
 						<>
 							<Loader2Icon className="size-4 animate-spin" /> Logging out...
@@ -47,7 +45,7 @@ export function LogoutMenuItem() {
 							<LogOutIcon className="size-4" /> Logout
 						</>
 					)}
-				</button>
+				</Button>
 			</DropdownMenuItem>
 		</form>
 	);

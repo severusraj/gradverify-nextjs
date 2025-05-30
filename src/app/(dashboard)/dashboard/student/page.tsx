@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { SubmissionForm } from "@/components/forms/submission-form";
 import { prisma } from "@/db/prisma";
 import { getSessionUser } from "@/lib/auth";

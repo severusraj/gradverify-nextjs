@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withAdmin } from "@/lib/api-middleware";
 
 async function handler(req: NextRequest) {
   if (req.method !== "POST") {
@@ -32,4 +31,6 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = withAdmin(handler); 
+export async function POST(req: NextRequest) {
+  return handler(req);
+} 

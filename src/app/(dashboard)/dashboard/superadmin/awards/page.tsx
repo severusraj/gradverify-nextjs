@@ -74,7 +74,7 @@ export default function AwardsManagement() {
         s.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
         s.studentId.includes(search));
     const matchesStatus =
-      statusFilter === "all" || s.status === statusFilter;
+      statusFilter === "all" || s.awardStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -94,7 +94,7 @@ export default function AwardsManagement() {
     });
     if (res.ok) {
       toast.success(`Student ${action === "APPROVE" ? "approved" : "rejected"}`);
-      setStudents(students => students.map(s => s.id === selected.id ? { ...s, status: action } : s));
+      setStudents(students => students.map(s => s.id === selected.id ? { ...s, awardStatus: action } : s));
       setSelected(null);
       setAction(null);
       setFeedback("");
@@ -275,9 +275,9 @@ export default function AwardsManagement() {
                           <span className="text-muted-foreground">No file</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(student.status)}</TableCell>
+                      <TableCell>{getStatusBadge(student.awardStatus)}</TableCell>
                       <TableCell>
-                        {student.status === "PENDING" && (
+                        {student.awardStatus === "PENDING" && (
                           <div className="flex gap-2">
                             <Button
                               size="sm"

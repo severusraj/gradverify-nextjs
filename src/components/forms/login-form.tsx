@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useTransition, useEffect } from "react";
+import { useTransition, useEffect, useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -10,18 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { loginUser } from "@/actions/auth.actions";
 
-const initialState = {
-	success: false,
-	message: "",
-	role: undefined,
-};
+interface LoginState {
+	message?: string;
+	error?: string;
+	success?: boolean;
+	role?: string;
+}
 
 export function LoginForm() {
 	const router = useRouter();
-
+	const [state, setState] = useState<LoginState>({});
 	const [isPending, startTransition] = useTransition();
-
-	const [state, formAction] = useActionState(loginUser, initialState);
 
 	useEffect(() => {
 		if (state.success) {
@@ -52,7 +51,7 @@ export function LoginForm() {
 		<form
 			action={(formData) => {
 				startTransition(() => {
-					formAction(formData);
+					loginUser({ success: false, message: "", role: undefined }, formData).then(setState);
 				});
 			}}
 			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"

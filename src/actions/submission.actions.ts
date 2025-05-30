@@ -68,16 +68,17 @@ export async function createSubmission(
     const key = await uploadToS3(buffer, file.name, file.type);
 
     // Create submission
-    await prisma.submission.create({
+    await prisma.studentProfile.create({
       data: {
         studentId: user.id,
-        type,
-        data: {
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          s3Key: key,
-        },
+        psaS3Key: key,
+        program: "Default Program",
+        department: "Default Department",
+        dob: "2000-01-01",
+        pob: "Default Place of Birth",
+        userId: user.id,
+        gradPhotoS3Key: "placeholder-grad-photo-key",
+        user: { connect: { id: user.id } },
       },
     });
 

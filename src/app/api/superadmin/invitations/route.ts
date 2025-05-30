@@ -27,7 +27,7 @@ async function handler(req: NextRequest) {
       const limit = parseInt(searchParams.get("limit") || "10");
 
       // Build where clause
-      const where: any = {};
+      const where: Record<string, unknown> = {};
       if (status && status !== "all") {
         where.status = status;
       }

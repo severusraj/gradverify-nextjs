@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withFaculty } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
-import { Prisma, Role, SubmissionStatus } from "@prisma/client";
+import { getCurrentUser } from "@/lib/current-user";
 
-async function handler(
-  req: NextRequest,
-  context: { params: Record<string, string> }
-) {
+export async function POST(req: NextRequest, context: { params: { studentId: string } }) {
   try {
-    if (req.method !== "POST") {
-      return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-    }
-
-    const studentId = context.params.studentId;
+    const { studentId } = context.params;
     if (!studentId) {
       return NextResponse.json({ error: "Student ID is required" }, { status: 400 });
     }
@@ -25,11 +16,8 @@ async function handler(
     }
 
     // Get the current user (faculty)
-    const currentUser = await prisma.user.findFirst({
-      where: { role: Role.FACULTY }
-    });
-
-    if (!currentUser) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== "FACULTY") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,7 +25,7 @@ async function handler(
     const updatedProfile = await prisma.studentProfile.update({
       where: { userId: studentId },
       data: {
-        psaStatus: action === "approve" ? SubmissionStatus.APPROVED : SubmissionStatus.REJECTED,
+        psaStatus: action === "approve" ? "APPROVED" : "REJECTED",
         feedback: feedback || null
       }
     });
@@ -56,8 +44,6 @@ async function handler(
       profile: updatedProfile
     });
   } catch (error) {
-    return handleApiError(error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
-
-export const POST = withFaculty(handler); 
+} 

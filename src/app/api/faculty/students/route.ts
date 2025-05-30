@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
 import { withFaculty } from "@/lib/api-middleware";
 import { apiResponse, handleApiError } from "@/lib/api-utils";
-import { SubmissionStatus } from "@prisma/client";
 
 // Define types for the response
 interface StudentResponse {
@@ -12,7 +11,7 @@ interface StudentResponse {
   studentId: string;
   department: string;
   program: string;
-  status: SubmissionStatus;
+  status: string;
   psaFile?: string;
   gradPhoto?: string;
   createdAt?: string;
@@ -29,13 +28,13 @@ async function handler(req: NextRequest) {
     const sort = searchParams.get("sort");
 
     // Build where clause for studentProfile
-    const where: any = {
+    const where: Record<string, unknown> = {
       ...(department && department !== "All" ? { department } : {}),
-      ...(status && status !== "All" ? { psaStatus: status.toUpperCase() as SubmissionStatus } : {}),
+      ...(status && status !== "All" ? { psaStatus: status.toUpperCase() } : {}),
     };
 
     // Build orderBy
-    let orderBy: any = { createdAt: "desc" };
+    let orderBy: Record<string, unknown> = { createdAt: "desc" };
     if (sort === "asc") orderBy = { createdAt: "asc" };
 
     // Fetch total count for pagination

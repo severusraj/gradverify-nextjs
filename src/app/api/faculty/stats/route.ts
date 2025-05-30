@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 import { withFaculty } from "@/lib/api-middleware";
-import { SubmissionStatus } from "@prisma/client";
 
 async function handler(req: NextRequest) {
   try {
     // Count student profiles by status
     const [pending, approved, rejected, notSubmitted, total] = await Promise.all([
-      prisma.studentProfile.count({ where: { psaStatus: SubmissionStatus.PENDING } }),
-      prisma.studentProfile.count({ where: { psaStatus: SubmissionStatus.APPROVED } }),
-      prisma.studentProfile.count({ where: { psaStatus: SubmissionStatus.REJECTED } }),
-      prisma.studentProfile.count({ where: { psaStatus: SubmissionStatus.NOT_SUBMITTED } }),
+      prisma.studentProfile.count({ where: { psaStatus: "PENDING" } }),
+      prisma.studentProfile.count({ where: { psaStatus: "APPROVED" } }),
+      prisma.studentProfile.count({ where: { psaStatus: "REJECTED" } }),
+      prisma.studentProfile.count({ where: { psaStatus: "NOT_SUBMITTED" } }),
       prisma.studentProfile.count({}),
     ]);
 

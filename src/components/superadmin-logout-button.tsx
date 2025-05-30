@@ -1,18 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { logoutUser } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 
-const initialState = { success: false, message: "" };
+const [state, setState] = useState({ success: false, message: "" });
+const [isPending, startTransition] = useTransition();
 
 export function SuperadminLogoutButton() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [state, formAction] = useActionState(logoutUser, initialState);
 
   useEffect(() => {
     if (state.success) {
@@ -27,7 +26,7 @@ export function SuperadminLogoutButton() {
     <form
       action={() => {
         startTransition(() => {
-          formAction();
+          logoutUser().then(setState);
         });
       }}
     >

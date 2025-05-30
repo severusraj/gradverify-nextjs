@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useEffect, useActionState } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -9,31 +9,26 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createSubmission } from "@/actions/submission.actions";
 
-const initialState = {
-  success: false,
-  message: "",
-};
+const [state, setState] = useState({ success: false, message: "" });
+const [isPending, startTransition] = useTransition();
+
+useEffect(() => {
+  if (state.success) {
+    toast.success(state.message);
+    // Reset form
+    const form = document.querySelector("form") as HTMLFormElement;
+    form?.reset();
+  } else if (state.message) {
+    toast.error(state.message);
+  }
+}, [state]);
 
 export function SubmissionForm() {
-  const [isPending, startTransition] = useTransition();
-  const [state, formAction] = useActionState(createSubmission, initialState);
-
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.message);
-      // Reset form
-      const form = document.querySelector("form") as HTMLFormElement;
-      form?.reset();
-    } else if (state.message) {
-      toast.error(state.message);
-    }
-  }, [state]);
-
   return (
     <form
       action={(formData) => {
         startTransition(() => {
-          formAction(formData);
+          createSubmission({ success: false, message: "" }, formData).then(setState);
         });
       }}
       className="block p-6 w-full max-w-md rounded-md border bg-background shadow-lg"

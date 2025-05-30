@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition, useEffect, useActionState } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -10,17 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { registerUser } from "@/actions/auth.actions";
 
-const initialState = {
-	success: false,
-	message: "",
-};
+const [state, setState] = useState({ success: false, message: "" });
+const [isPending, startTransition] = useTransition();
 
 export function RegisterForm() {
 	const router = useRouter();
-
-	const [isPending, startTransition] = useTransition();
-
-	const [state, formAction] = useActionState(registerUser, initialState);
 
 	useEffect(() => {
 		if (state.success) {
@@ -37,7 +31,7 @@ export function RegisterForm() {
 		<form
 			action={(formData) => {
 				startTransition(() => {
-					formAction(formData);
+					registerUser({ success: false, message: "" }, formData).then(setState);
 				});
 			}}
 			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"

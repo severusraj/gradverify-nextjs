@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Navbar } from "@/components/navbar";
+import ClientNavbarWrapper from "@/components/ClientNavbarWrapper";
 
 export const metadata: Metadata = {
 	title: "Home",
@@ -12,7 +12,7 @@ export default function HomePageLayout({
 }) {
 	return (
 		<div>
-			<Navbar />
+			<ClientNavbarWrapper />
 			{children}
 		</div>
 	);

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAdmin } from "@/lib/api-middleware";
 import { prisma } from "@/db/prisma";
 import { getCurrentUser } from "@/lib/current-user";
 
-export const PUT = withAdmin(async (req: NextRequest) => {
+export async function PUT(req: NextRequest) {
   try {
     const { name, email } = await req.json();
 
@@ -45,4 +44,4 @@ export const PUT = withAdmin(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-}); 
+} 
