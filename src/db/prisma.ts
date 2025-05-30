@@ -1,5 +1,10 @@
-import { PrismaClient } from "@/generated/prisma";
-import { Prisma } from "@/generated/prisma";
+import { PrismaClient } from "@prisma/client";
+import {
+	PrismaClientKnownRequestError,
+	PrismaClientUnknownRequestError,
+	PrismaClientRustPanicError,
+	PrismaClientInitializationError,
+} from "@prisma/client/runtime/library";
 
 // Add type for the global prisma instance
 declare global {
@@ -8,20 +13,20 @@ declare global {
 
 // Create a function to handle Prisma errors
 const handlePrismaError = (error: unknown) => {
-	if (error instanceof Prisma.PrismaClientKnownRequestError) {
+	if (error instanceof PrismaClientKnownRequestError) {
 		// Handle known Prisma errors
 		console.error('Prisma Client Error:', {
 			code: error.code,
 			message: error.message,
 			meta: error.meta,
 		});
-	} else if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+	} else if (error instanceof PrismaClientUnknownRequestError) {
 		// Handle unknown Prisma errors
 		console.error('Unknown Prisma Error:', error.message);
-	} else if (error instanceof Prisma.PrismaClientRustPanicError) {
+	} else if (error instanceof PrismaClientRustPanicError) {
 		// Handle Prisma client panic errors
 		console.error('Prisma Client Panic:', error.message);
-	} else if (error instanceof Prisma.PrismaClientInitializationError) {
+	} else if (error instanceof PrismaClientInitializationError) {
 		// Handle initialization errors
 		console.error('Prisma Client Initialization Error:', error.message);
 	} else {
@@ -37,7 +42,7 @@ const prismaClientSingleton = () => {
 	});
 
 	// Add error handling middleware
-	client.$use(async (params, next) => {
+	client.$use(async (params: any, next: any) => {
 		try {
 			return await next(params);
 		} catch (error) {
@@ -56,6 +61,3 @@ export const prisma = global.prisma ?? prismaClientSingleton();
 if (process.env.NODE_ENV !== 'production') {
 	global.prisma = prisma;
 }
-
-// Export Prisma types for use in other files
-export type { Prisma };
