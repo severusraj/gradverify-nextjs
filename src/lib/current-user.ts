@@ -7,6 +7,7 @@ export type User = {
 	email: string;
 	name: string;
 	role: string;
+	createdAt: string;
 };
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -30,10 +31,15 @@ export async function getCurrentUser(): Promise<User | null> {
 				email: true,
 				name: true,
 				role: true,
+				createdAt: true,
 			},
 		});
 
-		return user;
+		if (!user) {
+			return null;
+		}
+
+		return { ...user, createdAt: user.createdAt.toISOString() };
 	} catch (error_) {
 		const error = error_ as Error;
 		console.error(error.message, error);

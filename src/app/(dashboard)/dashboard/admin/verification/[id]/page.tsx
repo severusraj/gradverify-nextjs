@@ -67,9 +67,9 @@ export default function ReviewSubmissionPage() {
         setFeedback(data.feedback || "");
         setPsaStatus(data.psaStatus);
         setAwardStatus(data.awardStatus);
-      } catch (err: any) {
-        setError(err.message || "Failed to load submission");
-        console.error(err);
+      } catch (_err: unknown) {
+        setError(_err instanceof Error ? _err.message : "Failed to load submission");
+        console.error(_err);
       } finally {
         setLoading(false);
       }
@@ -98,9 +98,9 @@ export default function ReviewSubmissionPage() {
 
       toast.success("Submission updated successfully");
       router.push("/dashboard/admin/verification");
-    } catch (err) {
+    } catch (_err: unknown) {
       toast.error("Failed to update submission");
-      console.error(err);
+      console.error(_err);
     }
   };
 
@@ -124,9 +124,9 @@ export default function ReviewSubmissionPage() {
 
       window.open(url, '_blank');
 
-    } catch (err) {
+    } catch (_err: unknown) {
       toast.error("Failed to preview certificate");
-      console.error(err);
+      console.error(_err);
     }
   };
 
@@ -154,9 +154,9 @@ export default function ReviewSubmissionPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
+    } catch (_err: unknown) {
       toast.error("Failed to download certificate");
-      console.error(err);
+      console.error(_err);
     }
   };
 

@@ -8,11 +8,13 @@ export type AuditAction =
   | "FILE_UPLOADED"
   | "FILE_DELETED";
 
+type JsonValue = string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
+
 export type AuditLogData = {
   action: AuditAction;
   userId: string;
   targetId?: string;
-  details: Record<string, any>;
+  details: JsonValue;
   ip?: string;
   userAgent?: string;
 };
@@ -24,7 +26,8 @@ export async function createAuditLog(data: AuditLogData) {
         action: data.action,
         userId: data.userId,
         targetId: data.targetId,
-        details: data.details,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        details: data.details as any,
         ip: data.ip,
         userAgent: data.userAgent,
       },
@@ -45,17 +48,17 @@ export async function getAuditLogs(
   page = 1,
   limit = 10
 ) {
-  const where = {
-    ...(filters.userId && { userId: filters.userId }),
-    ...(filters.targetId && { targetId: filters.targetId }),
-    ...(filters.action && { action: filters.action }),
-    ...(filters.startDate && filters.endDate && {
-      createdAt: {
-        gte: filters.startDate,
-        lte: filters.endDate,
-      },
-    }),
-  };
+  const where: Record<string, unknown> = {};
+
+  if (filters.userId) where.userId = filters.userId;
+  if (filters.targetId) where.targetId = filters.targetId;
+  if (filters.action) where.action = filters.action;
+  if (filters.startDate && filters.endDate) {
+    where.createdAt = {
+      gte: filters.startDate,
+      lte: filters.endDate,
+    };
+  }
 
   const [total, logs] = await Promise.all([
     prisma.auditLog.count({ where }),

@@ -80,7 +80,7 @@ export async function removeAuthCookie() {
 	}
 }
 
-export async function getSessionUser<T = any>(): Promise<T | null> {
+export async function getSessionUser<T = unknown>(): Promise<T | null> {
 	try {
 		const token = await getAuthCookie();
 		if (!token) return null;
@@ -94,7 +94,7 @@ export async function getSessionUser<T = any>(): Promise<T | null> {
 	}
 }
 
-export async function getSessionUserWithStatus<T = any>(): Promise<{ user: T | null, invalidToken: boolean }> {
+export async function getSessionUserWithStatus<T = unknown>(): Promise<{ user: T | null, invalidToken: boolean }> {
 	try {
 		const token = await getAuthCookie();
 		if (!token) return { user: null, invalidToken: false };
@@ -186,7 +186,7 @@ export const authOptions: NextAuthOptions = {
 			}
 			return session as ExtendedSession;
 		},
-		async jwt({ token, user, account, profile, trigger, isNewUser, session }) {
+		async jwt({ token, user }) {
 			if (user) {
 				const prismaUser = user as unknown as User;
 				token = {

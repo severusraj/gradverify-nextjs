@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import Image from "next/image";
 
 // Define types
 interface Stats {
@@ -30,29 +31,18 @@ interface Student {
 	createdAt?: string;
 }
 
-const departments = ["All", "CCS", "CBA", "CAHS", "CEAS", "CHTM"];
-const statuses = ["All", "Pending", "Approved", "Rejected"];
-
 export default function FacultyDashboardPage() {
 	const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, notSubmitted: 0, total: 0 });
 	const [recent, setRecent] = useState<Student[]>([]);
 	const [loadingStats, setLoadingStats] = useState(true);
 	const [loadingRecent, setLoadingRecent] = useState(true);
-	const [students, setStudents] = useState<Student[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState("");
-	const [searchQuery, setSearchQuery] = useState("");
-	const [departmentFilter, setDepartmentFilter] = useState("All");
-	const [statusFilter, setStatusFilter] = useState("All");
 	const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-	const [feedback, setFeedback] = useState("");
-	const [page, setPage] = useState(1);
 	const [pageSize] = useState(20);
-	const [total, setTotal] = useState(0);
 	const [psaUrl, setPsaUrl] = useState<string | null>(null);
 	const [psaLoading, setPsaLoading] = useState(false);
 	const [gradPhotoUrl, setGradPhotoUrl] = useState<string | null>(null);
 	const [gradPhotoLoading, setGradPhotoLoading] = useState(false);
+	const [page] = useState(1);
 
 	// Fetch stats and recent submissions on mount
 	useEffect(() => {
@@ -69,45 +59,11 @@ export default function FacultyDashboardPage() {
 
 	// Fetch students on mount and when filters change
 	useEffect(() => {
-		setLoading(true);
 		fetch(`/api/faculty/students?page=${page}&pageSize=${pageSize}`)
 			.then((res) => res.json())
-			.then((data) => {
-				setStudents(Array.isArray(data.data?.students) ? data.data.students : []);
-				setTotal(data.data?.total || 0);
-			})
-			.catch((err) => setError(err.message || "Failed to load students"))
-			.finally(() => setLoading(false));
+			.catch((_err) => toast.error(_err.message || "Failed to load students"))
+			.finally(() => setLoadingRecent(false));
 	}, [page, pageSize]);
-
-	const handleVerification = async (studentId: string, action: "approve" | "reject") => {
-		try {
-			const response = await fetch(`/api/faculty/verify/${studentId}`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ action, feedback }),
-			});
-
-			if (!response.ok) throw new Error("Failed to process verification");
-			
-			toast.success(`Document ${action === "approve" ? "approved" : "rejected"} successfully`);
-			setSelectedStudent(null);
-			setFeedback("");
-			setPage(1);
-		} catch (err: any) {
-			toast.error(err.message || "Failed to process verification");
-		}
-	};
-
-	// Defensive: always use an array for students
-	const safeStudents = Array.isArray(students) ? students : [];
-
-	const filteredStudents = safeStudents.filter(student => 
-		student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		student.studentId.toLowerCase().includes(searchQuery.toLowerCase())
-	);
-
-	const totalPages = Math.ceil(total / pageSize);
 
 	const handleViewPSA = async (studentId: string) => {
 		setPsaLoading(true);
@@ -117,8 +73,12 @@ export default function FacultyDashboardPage() {
 			if (!res.ok) throw new Error("Failed to fetch PSA file");
 			const data = await res.json();
 			setPsaUrl(data.url);
-		} catch (err: any) {
-			toast.error(err.message || "Failed to fetch PSA file");
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				toast.error(err.message || "Failed to fetch PSA file");
+			} else {
+				toast.error("Failed to fetch PSA file");
+			}
 		} finally {
 			setPsaLoading(false);
 		}
@@ -132,8 +92,12 @@ export default function FacultyDashboardPage() {
 			if (!res.ok) throw new Error("Failed to fetch Graduation Photo");
 			const data = await res.json();
 			setGradPhotoUrl(data.url);
-		} catch (err: any) {
-			toast.error(err.message || "Failed to fetch Graduation Photo");
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				toast.error(err.message || "Failed to fetch Graduation Photo");
+			} else {
+				toast.error("Failed to fetch Graduation Photo");
+			}
 		} finally {
 			setGradPhotoLoading(false);
 		}
@@ -309,7 +273,7 @@ export default function FacultyDashboardPage() {
 												</a>
 												{/* Preview if image */}
 												<div className="mt-2">
-													<img src={psaUrl} alt="PSA Document" className="max-h-64 rounded border" />
+													<Image src={psaUrl} alt="PSA Document" width={256} height={256} className="max-h-64 rounded border" />
 												</div>
 											</div>
 										)}
@@ -345,7 +309,7 @@ export default function FacultyDashboardPage() {
 												</a>
 												{/* Preview if image */}
 												<div className="mt-2">
-													<img src={gradPhotoUrl} alt="Graduation Photo" className="max-h-64 rounded border" />
+													<Image src={gradPhotoUrl} alt="Graduation Photo" width={256} height={256} className="max-h-64 rounded border" />
 												</div>
 											</div>
 										)}

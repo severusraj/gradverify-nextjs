@@ -9,11 +9,6 @@ import { Label } from "../ui/label";
 import { resendVerificationEmail } from "@/actions/auth.actions";
 import { Loader2Icon } from "lucide-react";
 
-const initialState = {
-	success: false,
-	message: "",
-};
-
 export function ResendVerificationEmail() {
 	const router = useRouter();
 

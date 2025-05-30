@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withAdmin } from "@/lib/api-middleware";
 
 export async function GET(req: NextRequest) {
   if (req.method !== "GET") {

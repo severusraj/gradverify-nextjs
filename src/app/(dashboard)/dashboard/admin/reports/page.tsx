@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,18 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   Download,
   Calendar,
-  Filter,
   BarChart as BarChartIcon,
-  Users,
   Award,
   Loader2,
 } from "lucide-react";
-import { format } from "date-fns";
 import {
   Bar,
   XAxis,
@@ -57,11 +53,7 @@ export default function AdminReportsPage() {
   const [data, setData] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchReports();
-  }, [selectedPeriod]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -74,12 +66,16 @@ export default function AdminReportsPage() {
       }
       
       setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch reports");
+    } catch (_err) {
+      setError(_err instanceof Error ? _err.message : "Failed to fetch reports");
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const handleGenerateReport = async () => {
     setLoading(true);
@@ -104,8 +100,8 @@ export default function AdminReportsPage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate report");
+    } catch (_err) {
+      setError(_err instanceof Error ? _err.message : "Failed to generate report");
     } finally {
       setLoading(false);
     }

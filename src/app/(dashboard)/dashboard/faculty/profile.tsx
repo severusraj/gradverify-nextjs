@@ -113,7 +113,7 @@ export default function FacultyProfilePage() {
       } else {
         toast.error(data.error || "Failed to update profile");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);
@@ -150,7 +150,7 @@ export default function FacultyProfilePage() {
         setPasswordServerError(data.error || "Failed to update password");
         toast.error(data.error || "Failed to update password");
       }
-    } catch (err) {
+    } catch {
       setPasswordServerError("Failed to update password");
       toast.error("Failed to update password");
     } finally {

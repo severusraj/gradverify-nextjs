@@ -1,21 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlus, Users2, Building2, ChevronDown, ChevronRight } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { CreateUserDialog } from "@/components/dialogs/create-user-dialog";
 import { UserManagementTable } from "@/components/tables/user-management-table";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import type { User } from "@/lib/current-user";
 
 export default function UserManagementPage() {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
 
   useEffect(() => {
     setLoading(true);
@@ -30,14 +26,6 @@ export default function UserManagementPage() {
         setLoading(false);
       });
   }, []);
-
-  const toggleDepartment = (deptName: string) => {
-    setExpandedDepartments(prev => 
-      prev.includes(deptName) 
-        ? prev.filter(d => d !== deptName)
-        : [...prev, deptName]
-    );
-  };
 
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-8">

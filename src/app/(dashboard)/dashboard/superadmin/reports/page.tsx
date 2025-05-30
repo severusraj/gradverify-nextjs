@@ -97,8 +97,8 @@ const reportTypes = [
       }
       
       setReportData(data.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch reports");
+    } catch (_err) {
+      setError(_err instanceof Error ? _err.message : "Failed to fetch reports");
     } finally {
       setLoading(false);
     }
@@ -151,8 +151,8 @@ const reportTypes = [
       window.URL.revokeObjectURL(url);
 
       // Do not try to parse the response as JSON after downloading a file
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate report");
+    } catch (_err) {
+      setError(_err instanceof Error ? _err.message : "Failed to generate report");
     } finally {
       setLoading(false);
     }

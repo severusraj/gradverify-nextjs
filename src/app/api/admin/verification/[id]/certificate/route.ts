@@ -1,3 +1,5 @@
+"use server";
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 import { getSignedDownloadUrl } from "@/lib/s3";
@@ -17,7 +19,6 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 
   const { searchParams } = new URL(req.url);
   const certificateType = searchParams.get("type");
-  const download = searchParams.get("download");
 
   if (!certificateType) {
     return NextResponse.json(
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    let s3Key: string | null | undefined;
+    let s3Key: string | null = null;
     if (certificateType === 'psa') {
       s3Key = submission.psaS3Key;
     } else if (certificateType === 'award') {
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 
     const signedUrl = await getSignedDownloadUrl(s3Key);
     return NextResponse.json({ url: signedUrl });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error generating signed URL:", error);
     return NextResponse.json(
       { error: "Failed to generate signed URL" },

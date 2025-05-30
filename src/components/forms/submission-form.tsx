@@ -9,21 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createSubmission } from "@/actions/submission.actions";
 
-const [state, setState] = useState({ success: false, message: "" });
-const [isPending, startTransition] = useTransition();
-
-useEffect(() => {
-  if (state.success) {
-    toast.success(state.message);
-    // Reset form
-    const form = document.querySelector("form") as HTMLFormElement;
-    form?.reset();
-  } else if (state.message) {
-    toast.error(state.message);
-  }
-}, [state]);
-
 export function SubmissionForm() {
+  const [state, setState] = useState({ success: false, message: "" });
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (state.success) {
+      toast.success(state.message);
+      // Reset form
+      const form = document.querySelector("form") as HTMLFormElement;
+      form?.reset();
+    } else if (state.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
+
   return (
     <form
       action={(formData) => {

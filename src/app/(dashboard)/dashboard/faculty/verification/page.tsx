@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, Check, X, Loader2, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -65,11 +66,7 @@ export default function FacultyVerificationPage() {
   const [gradPhotoUrl, setGradPhotoUrl] = useState<string | null>(null);
   const [gradPhotoLoading, setGradPhotoLoading] = useState(false);
 
-  useEffect(() => {
-    fetchStudents();
-  }, [page, pageSize, departmentFilter, statusFilter]);
-
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -85,13 +82,22 @@ export default function FacultyVerificationPage() {
       const data = await response.json();
       setStudents(Array.isArray(data.data?.students) ? data.data.students : []);
       setTotal(data.data?.total || 0);
-    } catch (err: any) {
-      setError(err.message || "Failed to load students");
-      toast.error(err.message || "Failed to load students");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Failed to load students");
+        toast.error(err.message || "Failed to load students");
+      } else {
+        setError("Failed to load students");
+        toast.error("Failed to load students");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, departmentFilter, statusFilter]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   const handleVerification = async (studentId: string, action: "approve" | "reject") => {
     try {
@@ -111,8 +117,12 @@ export default function FacultyVerificationPage() {
       setSelectedStudent(null);
       setFeedback("");
       fetchStudents(); // Refresh the list
-    } catch (err: any) {
-      toast.error(err.message || "Failed to process verification");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || "Failed to process verification");
+      } else {
+        toast.error("Failed to process verification");
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -127,8 +137,12 @@ export default function FacultyVerificationPage() {
       if (!res.ok) throw new Error("Failed to fetch PSA file");
       const data = await res.json();
       setPsaUrl(data.url);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to fetch PSA file");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || "Failed to fetch PSA file");
+      } else {
+        toast.error("Failed to fetch PSA file");
+      }
     } finally {
       setPsaLoading(false);
     }
@@ -143,8 +157,12 @@ export default function FacultyVerificationPage() {
       if (!res.ok) throw new Error("Failed to fetch Graduation Photo");
       const data = await res.json();
       setGradPhotoUrl(data.url);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to fetch Graduation Photo");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || "Failed to fetch Graduation Photo");
+      } else {
+        toast.error("Failed to fetch Graduation Photo");
+      }
     } finally {
       setGradPhotoLoading(false);
     }
@@ -365,7 +383,7 @@ export default function FacultyVerificationPage() {
                         </a>
                         {/* Preview if image */}
                         <div className="mt-2">
-                          <img src={psaUrl} alt="PSA Document" className="max-h-64 rounded border" />
+                          <Image src={psaUrl} alt="PSA Document" width={256} height={256} className="max-h-64 rounded border" />
                         </div>
                       </div>
                     )}
@@ -401,7 +419,7 @@ export default function FacultyVerificationPage() {
                         </a>
                         {/* Preview if image */}
                         <div className="mt-2">
-                          <img src={gradPhotoUrl} alt="Graduation Photo" className="max-h-64 rounded border" />
+                          <Image src={gradPhotoUrl} alt="Graduation Photo" width={256} height={256} className="max-h-64 rounded border" />
                         </div>
                       </div>
                     )}

@@ -189,7 +189,7 @@ async function generateFormattedReport(
 }
 
 async function generateCSV(data: ReportData, filename: string): Promise<FormattedReport> {
-  let csvData: any[] = [];
+  const csvData: any[] = [];
   let fields: string[] = [];
 
   // Add summary data
