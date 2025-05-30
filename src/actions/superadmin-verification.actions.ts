@@ -2,7 +2,16 @@
 
 import { prisma } from "@/db/prisma";
 import { z } from "zod";
-import { SubmissionStatus } from '@/generated/prisma';
+
+// Define SubmissionStatus enum locally to match your schema
+const SubmissionStatus = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+  NOT_SUBMITTED: "NOT_SUBMITTED"
+} as const;
+
+type SubmissionStatusType = typeof SubmissionStatus[keyof typeof SubmissionStatus];
 
 const updateSchema = z.object({
   studentId: z.string(),
@@ -39,12 +48,12 @@ export async function updateStudentVerificationStatus({ studentId, status, feedb
     const overallStatus = await calculateOverallStatus(studentId, type, status);
     const updateData: Record<string, unknown> = {
       feedback: feedback || null,
-      overallStatus: overallStatus as SubmissionStatus,
+      overallStatus: overallStatus as SubmissionStatusType,
     };
     if (type === "PSA") {
-      updateData.psaStatus = status as SubmissionStatus;
+      updateData.psaStatus = status as SubmissionStatusType;
     } else if (type === "AWARD") {
-      updateData.awardStatus = status as SubmissionStatus;
+      updateData.awardStatus = status as SubmissionStatusType;
     }
     const updatedProfile = await prisma.studentProfile.update({
       where: { id: studentId },

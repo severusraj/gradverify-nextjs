@@ -8,7 +8,6 @@ import { prisma } from "@/db/prisma";
 import { compare } from "bcryptjs";
 import { JWT } from "next-auth/jwt";
 import { Session } from "next-auth";
-import type { User } from "@/generated/prisma";
 
 const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 
@@ -188,7 +187,7 @@ export const authOptions: NextAuthOptions = {
 		},
 		async jwt({ token, user }) {
 			if (user) {
-				const prismaUser = user as unknown as User;
+				const prismaUser = user as any;
 				token = {
 					...token,
 					id: prismaUser.id,
