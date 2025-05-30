@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withSuperAdmin } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
+import { withSuperAdmin } from "@/lib/api/api-middleware";
+import { apiResponse, handleApiError } from "@/lib/api/api-utils";
 import { subDays, formatISO, startOfDay } from "date-fns";
 
 export const runtime = "nodejs";

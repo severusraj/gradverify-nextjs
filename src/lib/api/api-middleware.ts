@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "./current-user";
+import { getCurrentUser } from "@/lib/utils/current-user";
 
 // Define Role type to match Prisma schema
 export type Role = "SUPER_ADMIN" | "ADMIN" | "FACULTY" | "STUDENT";

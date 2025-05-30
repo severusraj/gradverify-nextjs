@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withSuperAdmin } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
-import { getCurrentUser } from "@/lib/current-user";
+import { withSuperAdmin } from "@/lib/api/api-middleware";
+import { apiResponse, handleApiError } from "@/lib/api/api-utils";
+import { getCurrentUser } from "@/lib/utils/current-user";
 import { z } from "zod";
 
 const profileSchema = z.object({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withFaculty } from "@/lib/api-middleware";
+import { withFaculty } from "@/lib/api/api-middleware";
 
 async function handler(req: NextRequest) {
   try {

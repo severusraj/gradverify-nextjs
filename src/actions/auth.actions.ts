@@ -4,9 +4,12 @@ import { prisma } from "@/db/prisma";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import { addMinutes } from "date-fns";
-import { signAuthToken, setAuthCookie, removeAuthCookie } from "@/lib/auth";
-import { NAME_LENGTH, PASSWORD_LENGTH } from "@/lib/constants";
-import { sendVerificationEmail } from "@/lib/mailer";
+import { signAuthToken, setAuthCookie, removeAuthCookie } from "@/lib/auth/auth";
+import { NAME_LENGTH, PASSWORD_LENGTH } from "@/lib/utils/constants";
+import { sendVerificationEmail } from "@/lib/utils/mailer";
+import { Resend } from "resend";
+import { LoginInfoMessage } from "@/components/mail/login-info-message";
+import { getCurrentUser } from "@/lib/utils/current-user";
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "FACULTY" | "STUDENT";
 
@@ -15,6 +18,8 @@ type ResponseResult = {
 	message: string;
 	role: Role | undefined;
 };
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Login User Server Action
 export async function loginUser(
@@ -295,5 +300,71 @@ export async function resendVerificationEmail(
 			success: false,
 			message: "Something went wrong. Please try again.",
 		};
+	}
+}
+
+export async function createUserAsSuperAdmin({ name, email, password, role }: { name: string; email: string; password: string; role: string }) {
+	try {
+		// Check if the current user is a super admin
+		const currentUser = await getCurrentUser();
+		if (!currentUser || currentUser.role !== "SUPER_ADMIN") {
+			return { success: false, message: "Unauthorized" };
+		}
+
+		// Validate input
+		if (!name || !email || !password || !role) {
+			return { success: false, message: "Missing required fields" };
+		}
+
+		// Validate role
+		if (role !== "ADMIN" && role !== "FACULTY") {
+			return { success: false, message: "Invalid role" };
+		}
+
+		// Check if user exists
+		const existingUser = await prisma.user.findUnique({ where: { email } });
+		if (existingUser) {
+			return { success: false, message: "User with this email already exists" };
+		}
+
+		// Hash password
+		const hashedPassword = await bcrypt.hash(password, 10);
+
+		// Create user
+		const user = await prisma.user.create({
+			data: {
+				name,
+				email,
+				password: hashedPassword,
+				role,
+				emailVerified: new Date(), // Auto verify admin/faculty accounts
+			},
+		});
+
+		// Send welcome email
+		await resend.emails.send({
+			from: "GradVerify <noreply@gc-gradverify.site>",
+			to: user.email,
+			subject: `Welcome to GradVerify! ${user.name}`,
+			react: LoginInfoMessage({
+				email: user.email,
+				originalPassword: password,
+				hashedPassword: user.password,
+			}),
+		});
+
+		return {
+			success: true,
+			message: "User created successfully",
+			user: {
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+			},
+		};
+	} catch (error) {
+		console.error("Error creating user:", error);
+		return { success: false, message: "Internal server error" };
 	}
 }

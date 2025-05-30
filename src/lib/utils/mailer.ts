@@ -13,7 +13,7 @@ export async function sendVerificationEmail(
 	const verifyUrl = `${baseUrl}/api/verify?token=${token}`;
 
 	await resend.emails.send({
-		from: "GradVerify <onboarding@resend.dev>",
+		from: "GradVerify <noreply@gc-gradverify.site>",
 		to: email,
 		subject: "Verify Your Email",
 		react: VerifyEmailMessage({ verifyUrl: verifyUrl, name: name! }),

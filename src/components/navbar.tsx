@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { User } from "@/lib/current-user";
+import { User } from "@/lib/utils/current-user";
 import { buttonVariants } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { UserMenu } from "./user-menu";
 
 export function Navbar() {

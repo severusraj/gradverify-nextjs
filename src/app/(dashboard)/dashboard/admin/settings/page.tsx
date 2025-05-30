@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { changePassword } from "@/actions/admin-settings.actions";
 
 export default function AdminSettingsPage() {
   const [password, setPassword] = useState({
@@ -73,35 +74,21 @@ export default function AdminSettingsPage() {
     setLoading(true);
     setPasswordServerError(null);
     try {
-      const res = await fetch("/api/admin/settings/password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: password.current,
-          newPassword: password.new,
-        }),
+      await changePassword(password.current, password.new);
+      toast.success("Password updated successfully");
+      setPassword({ current: "", new: "", confirm: "" });
+      setPasswordServerError(null);
+      setPasswordStrength({
+        length: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false,
       });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Password updated successfully");
-        setPassword({ current: "", new: "", confirm: "" });
-        setPasswordServerError(null);
-        setPasswordStrength({
-          length: false,
-          uppercase: false,
-          lowercase: false,
-          number: false,
-          special: false,
-        });
-      } else {
-        setPasswordServerError(data.error || "Failed to update password");
-        toast.error(data.error || "Failed to update password");
-      }
-    } catch {
-      setPasswordServerError("Failed to update password");
-      toast.error("Failed to update password");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update password";
+      setPasswordServerError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

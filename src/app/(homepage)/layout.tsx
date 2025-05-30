@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ClientNavbarWrapper from "@/components/ClientNavbarWrapper";
+import ClientNavbarWrapper from "@/components/client-navbar-wrapper";
 
 export const metadata: Metadata = {
 	title: "Home",

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/db/prisma";
-import { withFaculty } from "@/lib/api-middleware";
-import { apiResponse, handleApiError } from "@/lib/api-utils";
+import { withFaculty } from "@/lib/api/api-middleware";
+import { apiResponse, handleApiError } from "@/lib/api/api-utils";
 
 // Define types for the response
 interface StudentResponse {

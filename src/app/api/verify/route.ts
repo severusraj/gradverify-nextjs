@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 import { isAfter } from "date-fns";
-import { SEARCH_PARAMS_TOKEN } from "@/lib/constants";
+import { SEARCH_PARAMS_TOKEN } from "@/lib/utils/constants";
 
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);

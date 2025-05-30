@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { facultyChangePassword } from "@/actions/faculty.actions";
 
 export default function FacultyProfilePage() {
   const [password, setPassword] = useState({
@@ -73,18 +74,12 @@ export default function FacultyProfilePage() {
     setLoading(true);
     setPasswordServerError(null);
     try {
-      const res = await fetch("/api/faculty/password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: password.current,
-          newPassword: password.new,
-        }),
+      const result = await facultyChangePassword({
+        currentPassword: password.current,
+        newPassword: password.new,
       });
-      const data = await res.json();
-      if (res.ok) {
+      
+      if (result.success) {
         toast.success("Password updated successfully");
         setPassword({ current: "", new: "", confirm: "" });
         setPasswordServerError(null);
@@ -96,12 +91,13 @@ export default function FacultyProfilePage() {
           special: false,
         });
       } else {
-        setPasswordServerError(data.error || "Failed to update password");
-        toast.error(data.error || "Failed to update password");
+        setPasswordServerError(result.message);
+        toast.error(result.message);
       }
-    } catch {
-      setPasswordServerError("Failed to update password");
-      toast.error("Failed to update password");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update password";
+      setPasswordServerError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

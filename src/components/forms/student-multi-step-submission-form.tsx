@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { submitStudentProfile } from "@/actions/studentProfile.actions";
+import { submitStudentProfile } from "@/actions/student-profile.actions";
 import { useRouter } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 const steps = [
   "Profile Info",

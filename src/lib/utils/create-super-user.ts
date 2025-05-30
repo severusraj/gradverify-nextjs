@@ -37,7 +37,7 @@ export async function createSuperUser({
 		});
 
 		await resend.emails.send({
-			from: "GradVerify <onboarding@resend.dev>",
+			from: "GradVerify <noreply@gc-gradverify.site>",
 			to: newUser.email,
 			subject: `Welcome to GradVerify! ${newUser.name}`,
 			react: LoginInfoMessage({

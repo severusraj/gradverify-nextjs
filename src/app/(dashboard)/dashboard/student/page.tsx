@@ -1,11 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/db/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
-import { getSignedDownloadUrl } from "@/lib/s3";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
 import { Button } from "@/components/ui/button";
-import StudentMultiStepSubmissionForm from "@/components/forms/StudentMultiStepSubmissionForm";
+import StudentMultiStepSubmissionForm from "@/components/forms/student-multi-step-submission-form";
 import { Navbar } from "@/components/navbar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
