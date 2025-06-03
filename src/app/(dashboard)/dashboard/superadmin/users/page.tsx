@@ -6,6 +6,7 @@ import { UserPlus } from "lucide-react";
 import { CreateUserDialog } from "@/components/dialogs/create-user-dialog";
 import { UserManagementTable } from "@/components/tables/user-management-table";
 import type { User } from "@/lib/utils/current-user";
+import { listAdminAndFacultyUsers } from "@/actions/superadmin-users.actions";
 
 export default function UserManagementPage() {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
@@ -15,16 +16,16 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/superadmin/users")
-      .then(res => res.json())
-      .then(data => {
-        setUsers(data.users || data.data?.users || []);
+    (async () => {
+      const result = await listAdminAndFacultyUsers();
+      if (result.success) {
+        setUsers(result.users ?? []);
         setLoading(false);
-      })
-      .catch(() => {
+      } else {
         setError("Failed to load users");
         setLoading(false);
-      });
+      }
+    })();
   }, []);
 
   return (

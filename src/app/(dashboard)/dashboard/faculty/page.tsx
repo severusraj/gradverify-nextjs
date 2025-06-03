@@ -46,33 +46,35 @@ export default function FacultyDashboardPage() {
 
 	// Fetch stats and recent submissions on mount
 	useEffect(() => {
-		fetch("/api/faculty/stats")
-			.then((res) => res.json())
-			.then((data) => setStats(data.stats))
-			.finally(() => setLoadingStats(false));
-
-		fetch("/api/faculty/students?limit=5&sort=desc")
-			.then((res) => res.json())
-			.then((data) => setRecent(Array.isArray(data.data?.students) ? data.data.students : []))
-			.finally(() => setLoadingRecent(false));
+		(async () => {
+			const { getFacultyStats } = await import("@/actions/faculty-stats.actions");
+			const { getFacultyStudents } = await import("@/actions/faculty-students.actions");
+			const statsData = await getFacultyStats();
+			setStats(statsData.stats);
+			const studentsData = await getFacultyStudents({ pageSize: 5, sort: "desc" });
+			setRecent(Array.isArray(studentsData.students) ? studentsData.students : []);
+			setLoadingStats(false);
+			setLoadingRecent(false);
+		})();
 	}, []);
 
 	// Fetch students on mount and when filters change
 	useEffect(() => {
-		fetch(`/api/faculty/students?page=${page}&pageSize=${pageSize}`)
-			.then((res) => res.json())
-			.catch((_err) => toast.error(_err.message || "Failed to load students"))
-			.finally(() => setLoadingRecent(false));
+		(async () => {
+			const { getFacultyStudents } = await import("@/actions/faculty-students.actions");
+			await getFacultyStudents({ page, pageSize });
+			setLoadingRecent(false);
+		})();
 	}, [page, pageSize]);
 
 	const handleViewPSA = async (studentId: string) => {
 		setPsaLoading(true);
 		setPsaUrl(null);
 		try {
-			const res = await fetch(`/api/faculty/verification/file-url?studentId=${studentId}&type=psa`);
-			if (!res.ok) throw new Error("Failed to fetch PSA file");
-			const data = await res.json();
-			setPsaUrl(data.url);
+			const { getFacultyVerificationFileUrl } = await import("@/actions/faculty-verification.actions");
+			const data = await getFacultyVerificationFileUrl(studentId, "psa");
+			if (!data.success) throw new Error(data.message || "Failed to fetch PSA file");
+			setPsaUrl(data.url ?? null);
 		} catch (err: unknown) {
 			if (err instanceof Error) {
 				toast.error(err.message || "Failed to fetch PSA file");
@@ -88,10 +90,10 @@ export default function FacultyDashboardPage() {
 		setGradPhotoLoading(true);
 		setGradPhotoUrl(null);
 		try {
-			const res = await fetch(`/api/faculty/verification/file-url?studentId=${studentId}&type=gradPhoto`);
-			if (!res.ok) throw new Error("Failed to fetch Graduation Photo");
-			const data = await res.json();
-			setGradPhotoUrl(data.url);
+			const { getFacultyVerificationFileUrl } = await import("@/actions/faculty-verification.actions");
+			const data = await getFacultyVerificationFileUrl(studentId, "gradPhoto");
+			if (!data.success) throw new Error(data.message || "Failed to fetch Graduation Photo");
+			setGradPhotoUrl(data.url ?? null);
 		} catch (err: unknown) {
 			if (err instanceof Error) {
 				toast.error(err.message || "Failed to fetch Graduation Photo");

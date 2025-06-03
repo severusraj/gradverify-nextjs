@@ -31,6 +31,8 @@ import {
   Cell,
   BarChart,
 } from "recharts";
+import { getAdminReport } from "@/actions/admin-reports.actions";
+import { toast } from "sonner";
 
 interface ReportData {
   totalSubmissions: number;
@@ -42,6 +44,12 @@ interface ReportData {
     awardsSubmitted: number;
     gradPhotoSubmitted: number;
   };
+}
+
+interface FormattedReportData {
+  buffer: Buffer;
+  contentType: string;
+  filename: string;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -58,16 +66,16 @@ export default function AdminReportsPage() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/admin/reports?period=${selectedPeriod}`);
-      const result = await response.json();
+      const result = await getAdminReport(selectedPeriod);
       
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to fetch reports");
+      if (!result.success) {
+        throw new Error(result.message || "Failed to fetch reports");
       }
       
-      setData(result);
+      setData(result.data as ReportData);
     } catch (_err) {
       setError(_err instanceof Error ? _err.message : "Failed to fetch reports");
+      toast.error("Failed to fetch reports");
     } finally {
       setLoading(false);
     }
@@ -82,26 +90,27 @@ export default function AdminReportsPage() {
     setError(null);
     
     try {
-      const response = await fetch(
-        `/api/admin/reports?period=${selectedPeriod}&format=${selectedFormat}`
-      );
+      const result = await getAdminReport(selectedPeriod, selectedFormat);
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to generate report");
+      if (!result.success) {
+        throw new Error(result.message || "Failed to generate report");
       }
 
-      const blob = await response.blob();
+      const { buffer, contentType, filename } = result.data as FormattedReportData;
+      const blob = new Blob([buffer], { type: contentType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `admin_report_${selectedPeriod}.${selectedFormat}`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      
+      toast.success("Report generated successfully");
     } catch (_err) {
       setError(_err instanceof Error ? _err.message : "Failed to generate report");
+      toast.error("Failed to generate report");
     } finally {
       setLoading(false);
     }
@@ -267,7 +276,7 @@ export default function AdminReportsPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Monthly Submissions Chart */}
         <Card>
           <CardHeader>
@@ -288,10 +297,10 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        {/* Document Types Chart */}
+        {/* Document Type Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Document Submissions</CardTitle>
+            <CardTitle>Document Type Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -302,10 +311,10 @@ export default function AdminReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
                     {documentData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -318,10 +327,10 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        {/* Verification Status Chart */}
+        {/* Status Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Verification Status</CardTitle>
+            <CardTitle>Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -332,10 +341,10 @@ export default function AdminReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
                     {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -345,35 +354,6 @@ export default function AdminReportsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-4">
-                {data.submissionsByMonth.slice(0, 5).map((item, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">
-                        {new Date(item.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {item._count} new submissions
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
           </CardContent>
         </Card>
       </div>

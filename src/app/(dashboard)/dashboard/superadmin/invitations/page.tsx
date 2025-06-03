@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import { getInvitationRecipients } from "@/actions/superadmin-invitations.actions";
 
 const roles = ["Graduate"];
 const departments = ["All", "CCS", "CBA", "CAHS", "CEAS", "CHTM"];
@@ -84,22 +85,22 @@ export default function InvitationsPage() {
   const fetchRecipients = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const result = await getInvitationRecipients({
         role: roleFilter,
         department: deptFilter,
         award: awardFilter,
         search,
-        page: String(page),
-        limit: String(pageSize),
+        page,
+        limit: pageSize,
       });
-      const res = await fetch(`/api/superadmin/invitations/recipients?${params.toString()}`);
-      const data = await res.json();
-      if (res.ok) {
-        setRecipients(data.data.recipients);
-        setTotalPages(data.data.pagination.pages);
-        setTotalRecipients(data.data.pagination.total);
+      if (result.success) {
+        setRecipients(result.recipients ?? []);
+        if (result.pagination) {
+          setTotalPages(result.pagination.pages);
+          setTotalRecipients(result.pagination.total);
+        }
       } else {
-        toast.error(data.error || "Failed to fetch recipients");
+        toast.error(result.error || "Failed to fetch recipients");
       }
     } catch {
       toast.error("Failed to fetch recipients");

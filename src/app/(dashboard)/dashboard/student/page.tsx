@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { getSignedDownloadUrl } from "@/lib/utils/s3";
 import { Button } from "@/components/ui/button";
 import StudentMultiStepSubmissionForm from "@/components/forms/student-multi-step-submission-form";
-import { Navbar } from "@/components/navbar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 
@@ -34,17 +33,12 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
   // Prepare download URLs if profile exists
   let psaUrl = null;
   let gradPhotoUrl = null;
-  let awardsUrl = null;
   if (profile) {
-    // Add null checks before calling getSignedDownloadUrl
     if (profile.psaS3Key) {
       psaUrl = await getSignedDownloadUrl(profile.psaS3Key);
     }
     if (profile.gradPhotoS3Key) {
       gradPhotoUrl = await getSignedDownloadUrl(profile.gradPhotoS3Key);
-    }
-    if (profile.awardsS3Key) {
-      awardsUrl = await getSignedDownloadUrl(profile.awardsS3Key);
     }
   }
 
@@ -58,7 +52,27 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
-      <Navbar />
+      {/* Inbox Card */}
+      <div className="w-full max-w-3xl mx-auto mt-8">
+        <div className="mb-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+              📥 Inbox
+            </h2>
+            {profile?.feedback ? (
+              <div>
+                <div className="text-blue-900 text-base mb-1 font-medium">Message from Admin/Faculty/Superadmin:</div>
+                <div className="text-blue-800 text-sm whitespace-pre-line">{profile.feedback}</div>
+                {profile.updatedAt && (
+                  <div className="text-xs text-blue-500 mt-2">Last updated: {new Date(profile.updatedAt).toLocaleString()}</div>
+                )}
+              </div>
+            ) : (
+              <div className="text-blue-600 text-sm">No messages yet. If your submission is rejected, you will see the reason and required actions here.</div>
+            )}
+          </div>
+        </div>
+      </div>
       <div className="flex-1 w-full flex flex-col items-center justify-center py-12 px-2 md:px-0">
         <div className="w-full max-w-3xl flex flex-col items-center justify-center gap-12">
           <div className="flex flex-col gap-8 w-full">
@@ -125,11 +139,6 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                      ) : (
                       <li>
                         <span className="text-muted-foreground">Graduation Photo: Not Submitted</span>
-                      </li>
-                    )}
-                    {awardsUrl && (
-                      <li>
-                        <a href={awardsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download Academic Awards</a>
                       </li>
                     )}
                   </ul>

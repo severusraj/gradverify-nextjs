@@ -18,6 +18,7 @@ import {
   Cell,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getSuperadminAnalytics } from "@/actions/superadmin-analytics.actions";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
@@ -63,16 +64,14 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/superadmin/analytics?range=${timeRange}`)
-      .then(res => res.json())
-      .then(res => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError("Failed to load analytics data");
-        setLoading(false);
-      });
+    (async () => {
+      const result = await getSuperadminAnalytics(timeRange as any);
+      setData(result);
+      setLoading(false);
+    })().catch(err => {
+      setError("Failed to load analytics data");
+      setLoading(false);
+    });
   }, [timeRange]);
 
   if (loading) return <div className="p-8">Loading analytics...</div>;

@@ -1,13 +1,15 @@
 import { verifyAuthToken, getAuthCookie, type AuthPayload } from "../auth/auth";
 import { prisma } from "@/db/prisma";
 
+export type UserRole = "ADMIN" | "FACULTY" | "SUPER_ADMIN" | "STUDENT";
+
 // Export the User type
 export type User = {
 	id: string;
 	email: string;
 	name: string;
-	role: string;
-	createdAt: string;
+	role: UserRole;
+	createdAt: Date;
 };
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -39,7 +41,7 @@ export async function getCurrentUser(): Promise<User | null> {
 			return null;
 		}
 
-		return { ...user, createdAt: user.createdAt.toISOString() };
+		return user as User;
 	} catch (error_) {
 		const error = error_ as Error;
 		console.error(error.message, error);

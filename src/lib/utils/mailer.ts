@@ -10,7 +10,7 @@ export async function sendVerificationEmail(
 	token: string,
 	name?: string,
 ) {
-	const verifyUrl = `${baseUrl}/api/verify?token=${token}`;
+	const verifyUrl = `${baseUrl}/verify?token=${token}`;
 
 	await resend.emails.send({
 		from: "GradVerify <noreply@gc-gradverify.site>",

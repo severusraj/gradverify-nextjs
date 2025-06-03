@@ -24,9 +24,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, FileText, Image as ImageIcon, CheckCircle, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getAwardViewUrl, getAwardDownloadUrl, getSuperadminAwards, updateAwardStatus } from "@/actions/superadmin-awards.actions";
 
 export default function AwardsManagement() {
-  const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -42,58 +42,65 @@ export default function AwardsManagement() {
   const [isAwardViewModalOpen, setIsAwardViewModalOpen] = useState(false);
   const [awardViewUrl, setAwardViewUrl] = useState<string | null>(null);
   const [awardFileType, setAwardFileType] = useState<"image" | "pdf" | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [awards, setAwards] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/superadmin/students?hasAwards=true")
-      .then(res => res.json())
-      .then(data => {
-        setStudents(data.data?.students || []);
+    (async () => {
+      const result = await getSuperadminAwards({ page, limit: pageSize });
+      if (result.success) {
+        setAwards(result.awards || []);
+        setTotalPages(result.pagination?.totalPages || 1);
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load students with awards");
+      } else {
+        setError("Failed to load awards");
         setLoading(false);
-      });
-  }, []);
+      }
+    })();
+  }, [page, pageSize]);
 
   // Filtering and pagination
-  const filtered = students.filter(s => {
+  const filtered = awards.filter(a => {
     const matchesSearch =
       !search ||
-      (s.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        s.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
-        s.studentId.includes(search));
+      (a.student?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        a.student?.email?.toLowerCase().includes(search.toLowerCase()) ||
+        a.student?.studentProfile?.studentId?.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus =
-      statusFilter === "all" || s.awardStatus === statusFilter;
+      statusFilter === "all" || a.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = filtered;
 
   // Approve/Reject handler
   async function handleAction() {
     if (!selected) return;
     setSubmitting(true);
-    const res = await fetch(`/api/superadmin/students/${selected.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: action,
-        rejectionReason: action === "REJECT" ? feedback : undefined,
-      }),
-    });
-    if (res.ok) {
-      toast.success(`Student ${action === "APPROVE" ? "approved" : "rejected"}`);
-      setStudents(students => students.map(s => s.id === selected.id ? { ...s, awardStatus: action } : s));
-      setSelected(null);
-      setAction(null);
-      setFeedback("");
-    } else {
-      const data = await res.json();
-      toast.error(data.error || "Failed to update status");
+    try {
+      const result = await updateAwardStatus({
+        awardId: selected.id,
+        status: action === "APPROVE" ? "APPROVED" : "REJECTED",
+        feedback: action === "REJECT" ? feedback : undefined
+      });
+
+      if (result.success) {
+        toast.success(`Award ${action === "APPROVE" ? "approved" : "rejected"}`);
+        setAwards(awards => awards.map(a => 
+          a.id === selected.id ? { ...a, status: action === "APPROVE" ? "APPROVED" : "REJECTED" } : a
+        ));
+        setSelected(null);
+        setAction(null);
+        setFeedback("");
+      } else {
+        toast.error(result.error || "Failed to update status");
+      }
+    } catch (error) {
+      console.error("Error updating award status:", error);
+      toast.error("Failed to update status");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   function getFileIcon(key: string) {
@@ -112,39 +119,26 @@ export default function AwardsManagement() {
     setViewLoading(true);
     setAwardViewUrl(null);
     setAwardFileType(null);
-    setIsAwardViewModalOpen(true); // Open modal immediately
+    setIsAwardViewModalOpen(true);
     try {
-      const res = await fetch(`/api/superadmin/awards/view-url?key=${encodeURIComponent(key)}`);
-      const data = await res.json();
-
-      console.log("Award view URL response data received by frontend:", data);
-
-      const isResponseOk = res.ok;
-      const receivedUrl = data.data?.url;
-
-      console.log("Checking response status and URL:", { isResponseOk, receivedUrl });
-
-      if (isResponseOk && receivedUrl) {
-        setAwardViewUrl(receivedUrl);
-        // Determine file type from key
+      const result = await getAwardViewUrl(key);
+      if (result.success && result.url) {
+        setAwardViewUrl(result.url);
         if (key.match(/\.(jpg|jpeg|png)$/i)) {
           setAwardFileType("image");
         } else if (key.endsWith(".pdf")) {
           setAwardFileType("pdf");
         } else {
-           setAwardFileType(null); // Fallback or unsupported type
+          setAwardFileType(null);
         }
-
-        console.log("Award file type and URL:", { awardFileType, url: receivedUrl });
-
       } else {
-        toast.error(data.error || "Failed to get award view link");
-        setIsAwardViewModalOpen(false); // Close modal on error
+        toast.error(result.error || "Failed to get award view link");
+        setIsAwardViewModalOpen(false);
       }
     } catch (error) {
       console.error("Error fetching award view URL:", error);
       toast.error("Failed to get award view link");
-      setIsAwardViewModalOpen(false); // Close modal on error
+      setIsAwardViewModalOpen(false);
     } finally {
       setViewLoading(false);
     }
@@ -153,19 +147,16 @@ export default function AwardsManagement() {
   async function handleDownloadAward(key: string) {
     setDownloadLoading(true);
     try {
-      const res = await fetch(`/api/superadmin/awards/download?key=${encodeURIComponent(key)}`);
-      const data = await res.json();
-
-      if (res.ok && data.data?.url) {
-        // Use the signed URL to trigger download in a new tab
+      const result = await getAwardDownloadUrl(key);
+      if (result.success && result.url) {
         const link = document.createElement('a');
-        link.href = data.data.url;
+        link.href = result.url;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       } else {
-        toast.error(data.error || "Failed to download award");
+        toast.error(result.error || "Failed to download award");
       }
     } catch (error) {
       console.error("Error downloading award:", error);
@@ -203,6 +194,7 @@ export default function AwardsManagement() {
           </Select>
         </div>
       </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Student Awards</CardTitle>
@@ -216,14 +208,14 @@ export default function AwardsManagement() {
             <div className="text-red-600 py-8">{error}</div>
           ) : (
             <ScrollArea className="h-[600px]">
-              <Table className="min-w-[900px]">
+              <Table className="table-auto">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Student</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Student ID</TableHead>
                     <TableHead>Program</TableHead>
-                    <TableHead>Award File</TableHead>
+                    <TableHead>Award</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-[160px]">Actions</TableHead>
                   </TableRow>
@@ -232,62 +224,68 @@ export default function AwardsManagement() {
                   {paginated.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                        No students with uploaded awards found
+                        No awards found
                       </TableCell>
                     </TableRow>
-                  ) : paginated.map((student) => (
-                    <TableRow key={student.id} className="hover:bg-muted/40 transition">
-                      <TableCell>{student.user?.name || student.studentId}</TableCell>
-                      <TableCell>{student.user?.email || "-"}</TableCell>
-                      <TableCell>{student.studentId}</TableCell>
-                      <TableCell>{student.program}</TableCell>
+                  ) : paginated.map((award) => (
+                    <TableRow key={award.id} className="hover:bg-muted/40 transition">
+                      <TableCell>{award.student?.name}</TableCell>
+                      <TableCell>{award.student?.email}</TableCell>
+                      <TableCell>{award.student?.studentProfile?.studentId}</TableCell>
+                      <TableCell className="max-w-[200px] whitespace-normal break-words">{award.student?.studentProfile?.program}</TableCell>
                       <TableCell>
-                        {student.awardsS3Key ? (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewAward(student.id, student.awardsS3Key)}
-                              disabled={viewLoading}
-                              className="mr-2"
-                            >
-                              {viewLoading ? "Loading..." : "View"}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDownloadAward(student.awardsS3Key)}
-                              disabled={downloadLoading}
-                            >
-                              {downloadLoading ? "Downloading..." : "Download"}
-                            </Button>
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">No file</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(student.awardStatus)}</TableCell>
-                      <TableCell>
-                        {student.awardStatus === "PENDING" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-green-700 border-green-300 hover:bg-green-50"
-                              onClick={() => { setSelected(student); setAction("APPROVE"); }}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-700 border-red-300 hover:bg-red-50"
-                              onClick={() => { setSelected(student); setAction("REJECT"); }}
-                            >
-                              <XCircle className="w-4 h-4 mr-1" /> Reject
-                            </Button>
+                        <div className="space-y-1">
+                          <div className="font-medium">{award.name}</div>
+                          <div className="text-sm text-muted-foreground">{award.description}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {award.category} • {award.year}
                           </div>
-                        )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(award.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {award.s3Key && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewAward(award.id, award.s3Key)}
+                                disabled={viewLoading}
+                              >
+                                {viewLoading ? "Loading..." : "View"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownloadAward(award.s3Key)}
+                                disabled={downloadLoading}
+                              >
+                                {downloadLoading ? "Downloading..." : "Download"}
+                              </Button>
+                            </>
+                          )}
+                          {award.status === "PENDING" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-green-700 border-green-300 hover:bg-green-50"
+                                onClick={() => { setSelected(award); setAction("APPROVE"); }}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-700 border-red-300 hover:bg-red-50"
+                                onClick={() => { setSelected(award); setAction("REJECT"); }}
+                              >
+                                <XCircle className="w-4 h-4 mr-1" /> Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -295,48 +293,18 @@ export default function AwardsManagement() {
               </Table>
             </ScrollArea>
           )}
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Prev
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Button
-                  key={i}
-                  variant={page === i + 1 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
-      {/* Approve/Reject Dialog */}
+
+      {/* Action Dialog */}
       <Dialog open={!!action} onOpenChange={() => { setAction(null); setSelected(null); setFeedback(""); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{action === "APPROVE" ? "Approve Award" : "Reject Award"}</DialogTitle>
           </DialogHeader>
           <div className="mb-4">
-            <div className="mb-2 font-medium">Student: {selected?.user?.name || selected?.studentId}</div>
-            <div className="mb-2 text-sm text-muted-foreground">Award file: {selected?.awardsS3Key}</div>
+            <div className="mb-2 font-medium">Student: {selected?.student?.name}</div>
+            <div className="mb-2 text-sm text-muted-foreground">Award: {selected?.name}</div>
             {action === "REJECT" && (
               <div>
                 <label className="block text-sm font-medium mb-1">Feedback (optional)</label>
@@ -359,6 +327,7 @@ export default function AwardsManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Award View Modal */}
       <Dialog open={isAwardViewModalOpen} onOpenChange={setIsAwardViewModalOpen}>
         <DialogContent className="max-w-3xl overflow-hidden">

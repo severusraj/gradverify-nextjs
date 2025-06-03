@@ -25,13 +25,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { getSuperadminVerificationList, getStudentPSAUrl, updateStudentVerificationStatus } from "@/actions/superadmin-verification.actions";
 
 // Use only the static departments array for the filter dropdown
 const departmentOptions = [
@@ -90,32 +88,35 @@ export default function VerificationManagementPage() {
 
   // Fetch unique departments on mount
   useEffect(() => {
-    fetch("/api/superadmin/verification?department=all&status=all")
-      .then(res => res.json())
-      .then(data => {
-        const uniqueDepartments = Array.from(new Set((data.submissions || []).map((s: any) => String(s.department)).filter(Boolean))) as string[];
+    (async () => {
+      const result = await getSuperadminVerificationList({ department: "all", status: "all", page: 1, limit: 1 });
+      if (result.success && result.data) {
+        const uniqueDepartments = Array.from(new Set((result.data.students || []).map((s: any) => String(s.department)).filter(Boolean))) as string[];
         setDepartments(uniqueDepartments);
-      });
+      }
+    })();
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    const url = `/api/superadmin/verification?department=${selectedDepartment}&status=${statusFilter}&page=${page}&limit=${pageSize}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        const students = data.data?.students || data.students || [];
+    (async () => {
+      const result = await getSuperadminVerificationList({
+        department: selectedDepartment,
+        status: statusFilter,
+        page,
+        limit: pageSize,
+      });
+      if (result.success && result.data) {
+        const students = result.data.students || [];
         setRequests(students);
-        setPagination(data.data?.pagination || data.pagination || { total: 0, pages: 1, current: 1, limit: 10 });
-        // Set stats from API response
-        const stats = data.data?.stats || data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 };
-        setStats(stats);
+        setPagination(result.data.pagination || { total: 0, pages: 1, current: 1, limit: 10 });
+        setStats(result.data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 });
         setLoading(false);
-      })
-      .catch((error) => {
+      } else {
         setError("Failed to load verification requests");
         setLoading(false);
-      });
+      }
+    })();
   }, [selectedDepartment, statusFilter, page, pageSize]);
 
   const filteredRequests = requests.filter((request) => {
@@ -148,13 +149,13 @@ export default function VerificationManagementPage() {
     try {
       const student = requests.find(r => r.id === studentId);
       setViewRequest(student);
-      const res = await fetch(`/api/superadmin/verification/psa-url?studentId=${studentId}`);
-      const data = await res.json();
-      if (res.ok && data.data?.url) {
-        setPsaUrl(data.data.url);
+      // Use server action instead of fetch
+      const result = await getStudentPSAUrl(studentId);
+      if (result.success && result.url) {
+        setPsaUrl(result.url);
         setIsViewOpen(true);
       } else {
-        toast.error(data.error || "Failed to fetch PSA file");
+        toast.error(result.error || "Failed to fetch PSA file");
       }
     } catch {
       toast.error("Failed to fetch PSA file");
@@ -175,34 +176,32 @@ export default function VerificationManagementPage() {
     if (!actionStudent || !actionType || !actionDocumentType) return;
     setActionLoading(true);
     try {
-      const res = await fetch("/api/superadmin/verification", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId: actionStudent.id,
-          status: actionType,
-          feedback: actionType === "REJECTED" ? feedback : undefined,
-          type: actionDocumentType,
-        }),
+      const result = await updateStudentVerificationStatus({
+        studentId: actionStudent.id,
+        status: actionType,
+        feedback: actionType === "REJECTED" ? feedback : undefined,
+        type: actionDocumentType,
       });
-      const data = await res.json();
-      if (res.ok) {
+      if (result.success) {
         toast.success(`${actionDocumentType} ${actionType === "APPROVED" ? "approved" : "rejected"}`);
         setActionStudent(null);
         setActionType(null);
         setActionDocumentType(null);
         setFeedback("");
-        // Refresh data
-        const url = `/api/superadmin/verification?department=${selectedDepartment}&status=${statusFilter}&page=${page}&limit=${pageSize}`;
-        fetch(url)
-          .then(res => res.json())
-          .then(data => {
-            const students = data.data?.students || data.students || [];
-            setRequests(students);
-            setPagination(data.data?.pagination || data.pagination || { total: 0, pages: 1, current: 1, limit: 10 });
-          });
+        // Refresh data using server action
+        const refresh = await getSuperadminVerificationList({
+          department: selectedDepartment,
+          status: statusFilter,
+          page,
+          limit: pageSize,
+        });
+        if (refresh.success && refresh.data) {
+          const students = refresh.data.students || [];
+          setRequests(students);
+          setPagination(refresh.data.pagination || { total: 0, pages: 1, current: 1, limit: 10 });
+        }
       } else {
-        toast.error(data.error || "Failed to update status");
+        toast.error(result.message || "Failed to update status");
       }
     } catch {
       toast.error("Failed to update status");

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileCheck, Users, Award } from "lucide-react";
+import { getAdminDashboardData } from "@/actions/admin-dashboard.actions";
 
 interface DashboardStats {
 	totalSubmissions: number;
@@ -25,9 +26,11 @@ export default function AdminDashboard() {
 	useEffect(() => {
 		const fetchStats = async () => {
 			try {
-				const response = await fetch("/api/admin/dashboard");
-				const data = await response.json();
-				setStats(data);
+				const result = await getAdminDashboardData();
+				if (!result.success || !result.data) {
+					throw new Error(result.message || "Failed to load dashboard data");
+				}
+				setStats(result.data);
 			} catch (_err) {
 				setError("Failed to load dashboard data");
 				console.error(_err);

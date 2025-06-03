@@ -13,18 +13,12 @@ export function Navbar() {
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
-				const response = await fetch("/api/current-user");
-				if (!response.ok) {
-					// Handle error or no user case
-					setUser(null); // Explicitly set to null on error or no user
-					return;
-				}
-				const data = await response.json();
-				// Assuming the API returns the user object directly
-				setUser(data);
+				const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+				const data = await getCurrentUserServer();
+				setUser(data.user);
 			} catch (error) {
 				console.error("Failed to fetch user:", error);
-				setUser(null); // Set to null on fetch error
+				setUser(null);
 			}
 		};
 		fetchUser();

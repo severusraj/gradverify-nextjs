@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { searchVerificationSubmissions, adminBulkRejectVerifications, adminBulkApproveVerifications } from "@/actions/admin-verification.actions";
 
 interface Submission {
   id: string;
@@ -40,15 +41,22 @@ export default function VerificationPage() {
       setLoading(true);
       setError(null);
       try {
-        const url = new URL("/api/admin/verification", window.location.origin);
-        url.searchParams.set("search", searchQuery);
-        url.searchParams.set("status", statusFilter);
-        const response = await fetch(url.toString());
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch submissions");
+        const { success, data, message } = await searchVerificationSubmissions({
+          search: searchQuery,
+          status: statusFilter,
+        });
+
+        if (!success || !data) {
+          throw new Error(message || "Failed to fetch submissions");
         }
-        setSubmissions(data.data);
+
+        setSubmissions(
+          data.map((submission: any) => ({
+            ...submission,
+            createdAt: submission.createdAt instanceof Date ? submission.createdAt.toISOString() : submission.createdAt,
+            updatedAt: submission.updatedAt instanceof Date ? submission.updatedAt.toISOString() : submission.updatedAt,
+          }))
+        );
       } catch (_err: unknown) {
         setError(_err instanceof Error ? _err.message : "Failed to load submissions");
         console.error(_err);
@@ -67,27 +75,40 @@ export default function VerificationPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/verification/bulk-${action}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ids: selectedSubmissions }),
-      });
+      let result;
+      if (action === "reject") {
+        result = await adminBulkRejectVerifications({
+          ids: selectedSubmissions,
+        });
+      } else {
+        result = await adminBulkApproveVerifications({
+          ids: selectedSubmissions,
+        });
+      }
 
-      if (!response.ok) {
-        throw new Error(`Failed to ${action} submissions`);
+      if (!result.success) {
+        throw new Error(result.message || `Failed to ${action} submissions`);
       }
 
       toast.success(`Successfully ${action}d ${selectedSubmissions.length} submissions`);
       setSelectedSubmissions([]);
       // Refresh the submissions list
-      const url = new URL("/api/admin/verification", window.location.origin);
-      url.searchParams.set("search", searchQuery);
-      url.searchParams.set("status", statusFilter);
-      const updatedResponse = await fetch(url.toString());
-      const updatedData = await updatedResponse.json();
-      setSubmissions(updatedData.data);
+      const { success: refreshSuccess, data: refreshData, message: refreshMessage } = await searchVerificationSubmissions({
+        search: searchQuery,
+        status: statusFilter,
+      });
+
+      if (!refreshSuccess || !refreshData) {
+        throw new Error(refreshMessage || "Failed to refresh submissions");
+      }
+
+      setSubmissions(
+        refreshData.map((submission: any) => ({
+          ...submission,
+          createdAt: submission.createdAt instanceof Date ? submission.createdAt.toISOString() : submission.createdAt,
+          updatedAt: submission.updatedAt instanceof Date ? submission.updatedAt.toISOString() : submission.updatedAt,
+        }))
+      );
     } catch (_err: unknown) {
       toast.error(`Failed to ${action} submissions`);
       console.error(_err);
@@ -252,7 +273,9 @@ export default function VerificationPage() {
                 </div>
               ))
             ) : (
-              <div className="text-center text-muted-foreground">No submissions found.</div>
+              <div className="text-center py-8 text-muted-foreground">
+                No submissions found
+              </div>
             )}
           </div>
         </CardContent>

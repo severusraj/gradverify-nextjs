@@ -22,14 +22,8 @@ import { MoreHorizontal, Trash2, Edit2, Users2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: string;
-}
+import { listAdminAndFacultyUsers, deleteAdminOrFacultyUser } from "@/actions/superadmin-users.actions";
+import type { User } from "@/lib/utils/current-user";
 
 export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
   const [users, setUsers] = useState<User[]>(propUsers || []);
@@ -51,9 +45,8 @@ export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
     if (!propUsers) {
       const fetchUsers = async () => {
         try {
-          const response = await fetch("/api/users");
-          const data = await response.json();
-          if (response.ok) setUsers(data.users);
+          const result = await listAdminAndFacultyUsers();
+          if (result.success) setUsers(result.users ?? []);
         } finally {
           setIsLoading(false);
         }
@@ -71,21 +64,16 @@ export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
+      const result = await deleteAdminOrFacultyUser({ id: userId });
+      if (result.success) {
         toast.success("User deleted successfully");
         if (!propUsers) {
           // Refresh users list only if fetching internally
-          const res = await fetch("/api/users");
-          const data = await res.json();
-          setUsers(data.users);
+          const res = await listAdminAndFacultyUsers();
+          if (res.success) setUsers(res.users ?? []);
         }
       } else {
-        const data = await response.json();
-        throw new Error(data.message);
+        throw new Error(result.message);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to delete user");
@@ -131,7 +119,7 @@ export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
               <TableCell className="capitalize">
                 {user.role.toLowerCase().replace("_", " ")}
               </TableCell>
-              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>{user.createdAt.toLocaleDateString()}</TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

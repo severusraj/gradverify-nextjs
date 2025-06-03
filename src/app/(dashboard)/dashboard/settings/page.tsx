@@ -21,13 +21,13 @@ export default function SettingsPage() {
 
   // Fetch user on mount
   useEffect(() => {
-    fetch("/api/current-user")
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data.user);
-        setLoading(false);
-        setName(data.user?.name || "");
-      });
+    (async () => {
+      const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+      const data = await getCurrentUserServer();
+      setUser(data.user);
+      setLoading(false);
+      setName(data.user?.name || "");
+    })();
   }, []);
 
   // Role-aware dashboard path
