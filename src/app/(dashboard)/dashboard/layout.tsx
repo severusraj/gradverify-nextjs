@@ -153,8 +153,8 @@ export default function DashboardLayout({
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
-				const response = await fetch("/api/current-user");
-				const data = await response.json();
+				const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+				const data = await getCurrentUserServer();
 				if (data.user) {
 					setUser(data.user);
 				} else {

@@ -37,6 +37,7 @@ export async function createAdminOrFacultyUser({ name, email, role, password }: 
         role,
         password: hashedPassword,
         lastLoginAt: null,
+        emailVerified: new Date(),
       },
       select: {
         id: true,

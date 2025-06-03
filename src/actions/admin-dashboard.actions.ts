@@ -1,11 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
+
 import { prisma } from "@/db/prisma";
 
-export async function GET(req: NextRequest) {
-  if (req.method !== "GET") {
-    return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-  }
+type StudentProfileWithUser = {
+  id: string;
+  overallStatus: string;
+  createdAt: Date;
+  user: {
+    name: string | null;
+  } | null;
+};
 
+export async function getAdminDashboardData() {
   try {
     const totalSubmissions = await prisma.studentProfile.count();
     const pendingSubmissions = await prisma.studentProfile.count({
@@ -20,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     const recentSubmissions = await prisma.studentProfile.findMany({
       orderBy: { createdAt: "desc" },
-      take: 5, // Get the 5 most recent submissions
+      take: 5,
       include: {
         user: {
           select: {
@@ -30,25 +36,28 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const formattedRecentSubmissions = recentSubmissions.map((submission) => ({
+    const formattedRecentSubmissions = recentSubmissions.map((submission: StudentProfileWithUser) => ({
       id: submission.id,
       studentName: submission.user?.name || "Unknown",
       status: submission.overallStatus,
       createdAt: submission.createdAt.toISOString(),
     }));
 
-    return NextResponse.json({
-      totalSubmissions,
-      pendingSubmissions,
-      approvedSubmissions,
-      rejectedSubmissions,
-      recentSubmissions: formattedRecentSubmissions,
-    });
+    return {
+      success: true,
+      data: {
+        totalSubmissions,
+        pendingSubmissions,
+        approvedSubmissions,
+        rejectedSubmissions,
+        recentSubmissions: formattedRecentSubmissions,
+      },
+    };
   } catch (error) {
     console.error("Error fetching admin dashboard data:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch dashboard data" },
-      { status: 500 }
-    );
+    return {
+      success: false,
+      message: "Failed to fetch dashboard data",
+    };
   }
 } 

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
+
 export default function FacultyProfilePage() {
   const [profile, setProfile] = useState({
     name: "",
@@ -38,13 +39,13 @@ export default function FacultyProfilePage() {
 
   // Fetch current user on mount
   useEffect(() => {
-    fetch("/api/current-user")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setProfile({ name: data.user.name, email: data.user.email });
-        }
-      });
+    (async () => {
+      const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+      const data = await getCurrentUserServer();
+      if (data.user) {
+        setProfile({ name: data.user.name, email: data.user.email });
+      }
+    })();
   }, []);
 
   // Profile validation

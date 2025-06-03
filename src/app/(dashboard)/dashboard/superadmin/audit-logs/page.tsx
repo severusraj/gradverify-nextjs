@@ -114,7 +114,6 @@ export default function AuditLogsPage() {
                     <TableHead>Date</TableHead>
                     <TableHead>User</TableHead>
                     <TableHead>Action</TableHead>
-                    <TableHead>Target</TableHead>
                     <TableHead>Details</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -128,9 +127,19 @@ export default function AuditLogsPage() {
                         <div className="text-xs text-muted-foreground">{log.user?.role}</div>
                       </TableCell>
                       <TableCell>{log.action}</TableCell>
-                      <TableCell>{log.targetId || "-"}</TableCell>
                       <TableCell>
-                        <pre className="whitespace-pre-wrap text-xs bg-muted p-2 rounded max-w-xs overflow-x-auto">{JSON.stringify(log.details, null, 2)}</pre>
+                        {log.details && typeof log.details === "object" && !Array.isArray(log.details) ? (
+                          <ul className="text-xs bg-muted p-2 rounded max-w-xs overflow-x-auto">
+                            {Object.entries(log.details).map(([key, value]) => (
+                              <li key={key} className="mb-1">
+                                <span className="font-semibold mr-1">{key}:</span>
+                                <span>{typeof value === "string" ? value : JSON.stringify(value)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <pre className="whitespace-pre-wrap text-xs bg-muted p-2 rounded max-w-xs overflow-x-auto">{JSON.stringify(log.details, null, 2)}</pre>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

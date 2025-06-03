@@ -69,19 +69,15 @@ export default function FacultyVerificationPage() {
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: String(page),
-        pageSize: String(pageSize),
-        department: departmentFilter !== "All" ? departmentFilter : "",
-        status: statusFilter !== "All" ? statusFilter.toUpperCase() : "",
+      const { getFacultyStudents } = await import("@/actions/faculty-students.actions");
+      const data = await getFacultyStudents({
+        page,
+        pageSize,
+        department: departmentFilter !== "All" ? departmentFilter : undefined,
+        status: statusFilter !== "All" ? statusFilter : undefined,
       });
-      
-      const response = await fetch(`/api/faculty/students?${params.toString()}`);
-      if (!response.ok) throw new Error("Failed to fetch students");
-      
-      const data = await response.json();
-      setStudents(Array.isArray(data.data?.students) ? data.data.students : []);
-      setTotal(data.data?.total || 0);
+      setStudents(Array.isArray(data.students) ? data.students : []);
+      setTotal(data.total || 0);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "Failed to load students");
@@ -133,10 +129,10 @@ export default function FacultyVerificationPage() {
     setPsaLoading(true);
     setPsaUrl(null);
     try {
-      const res = await fetch(`/api/faculty/verification/file-url?studentId=${studentId}&type=psa`);
-      if (!res.ok) throw new Error("Failed to fetch PSA file");
-      const data = await res.json();
-      setPsaUrl(data.url);
+      const { getFacultyVerificationFileUrl } = await import("@/actions/faculty-verification.actions");
+      const data = await getFacultyVerificationFileUrl(studentId, "psa");
+      if (!data.success) throw new Error(data.message || "Failed to fetch PSA file");
+      setPsaUrl(data.url ?? null);
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message || "Failed to fetch PSA file");
@@ -153,10 +149,10 @@ export default function FacultyVerificationPage() {
     setGradPhotoLoading(true);
     setGradPhotoUrl(null);
     try {
-      const res = await fetch(`/api/faculty/verification/file-url?studentId=${studentId}&type=gradPhoto`);
-      if (!res.ok) throw new Error("Failed to fetch Graduation Photo");
-      const data = await res.json();
-      setGradPhotoUrl(data.url);
+      const { getFacultyVerificationFileUrl } = await import("@/actions/faculty-verification.actions");
+      const data = await getFacultyVerificationFileUrl(studentId, "gradPhoto");
+      if (!data.success) throw new Error(data.message || "Failed to fetch Graduation Photo");
+      setGradPhotoUrl(data.url ?? null);
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message || "Failed to fetch Graduation Photo");

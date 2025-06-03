@@ -23,8 +23,11 @@ export default async function RegisterYourEmailPage() {
 	}
 
 	return (
-		<div className="mx-auto max-w-3xl px-8 md:px-0 h-screen w-screen flex items-center justify-center">
+		<div className="mx-auto max-w-3xl px-8 md:px-0 h-screen w-screen flex flex-col items-center justify-center">
 			<ResendVerificationEmail />
+			<p className="text-sm text-center text-muted-foreground mt-4 max-w-md">
+				Didn't receive the email? Please check your <b>Spam</b> or <b>Junk</b> folder. If you still can't find it, you can resend the verification email above.
+			</p>
 		</div>
 	);
 }

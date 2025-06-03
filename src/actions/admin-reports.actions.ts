@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
+
 import { prisma } from "@/db/prisma";
 import { format } from "date-fns";
 import { Parser } from "json2csv";
 import ExcelJS from "exceljs";
 import { jsPDF } from "jspdf";
+import { getCurrentUser } from "@/lib/utils/current-user";
 
 interface SubmissionStatus {
   overallStatus: string;
@@ -35,11 +37,13 @@ interface FormattedReport {
   filename: string;
 }
 
-export async function GET(req: NextRequest) {
+export async function getAdminReport(period: string = 'monthly', formatType?: string) {
   try {
-    const { searchParams } = new URL(req.url);
-    const period = searchParams.get('period') || 'monthly'; // Default to monthly
-    const formatType = searchParams.get('format');
+    // Role check
+    const user = await getCurrentUser();
+    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+      return { success: false, message: "Forbidden" };
+    }
 
     // Set date range based on period
     let dateFilter = {};
@@ -146,22 +150,21 @@ export async function GET(req: NextRequest) {
     if (formatType) {
       // Generate and return file based on format
       const formattedReport = await generateFormattedReport(reportData, period, formatType);
-      return new NextResponse(formattedReport.buffer, {
-        headers: {
-          'Content-Type': formattedReport.contentType,
-          'Content-Disposition': `attachment; filename="${formattedReport.filename}"`,
-        },
-      });
+      return { 
+        success: true, 
+        data: {
+          buffer: formattedReport.buffer,
+          contentType: formattedReport.contentType,
+          filename: formattedReport.filename
+        }
+      };
     } else {
       // Return JSON data for display
-      return NextResponse.json(reportData);
+      return { success: true, data: reportData };
     }
   } catch (error) {
     console.error('Error fetching report data:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch report data' },
-      { status: 500 }
-    );
+    return { success: false, message: 'Failed to fetch report data' };
   }
 }
 
@@ -204,11 +207,11 @@ async function generateCSV(data: ReportData, filename: string): Promise<Formatte
   csvData.push({}); // Add empty row for spacing
 
   // Add submissions by month
-    csvData.push({ Information: 'Submissions by Month' });
-    csvData.push({ Information: 'Month/Year', Value: 'Count' });
-    data.submissionsByMonth.forEach((item: SubmissionMonth) => {
-        csvData.push({ Information: format(new Date(item.createdAt), 'MMM yyyy'), Value: item._count });
-    });
+  csvData.push({ Information: 'Submissions by Month' });
+  csvData.push({ Information: 'Month/Year', Value: 'Count' });
+  data.submissionsByMonth.forEach((item: SubmissionMonth) => {
+    csvData.push({ Information: format(new Date(item.createdAt), 'MMM yyyy'), Value: item._count });
+  });
   csvData.push({}); // Add empty row for spacing
 
   // Add document type statistics
@@ -249,11 +252,11 @@ async function generateExcel(data: ReportData, filename: string): Promise<Format
   worksheet.addRow([]); // Add empty row for spacing
 
   // Add submissions by month
-    worksheet.addRow(['Submissions by Month']);
-    worksheet.addRow(['Month/Year', 'Count']);
-    data.submissionsByMonth.forEach((item: SubmissionMonth) => {
-        worksheet.addRow([format(new Date(item.createdAt), 'MMM yyyy'), item._count]);
-    });
+  worksheet.addRow(['Submissions by Month']);
+  worksheet.addRow(['Month/Year', 'Count']);
+  data.submissionsByMonth.forEach((item: SubmissionMonth) => {
+    worksheet.addRow([format(new Date(item.createdAt), 'MMM yyyy'), item._count]);
+  });
   worksheet.addRow([]); // Add empty row for spacing
 
   // Add document type statistics
@@ -273,59 +276,46 @@ async function generateExcel(data: ReportData, filename: string): Promise<Format
 
 async function generatePDF(data: ReportData, filename: string): Promise<FormattedReport> {
   const doc = new jsPDF();
-  let yPos = 10;
-  const lineHeight = 7;
-  const margin = 10;
 
-  doc.setFontSize(18);
-  doc.text('Admin Report', margin, yPos);
-  yPos += lineHeight * 2;
+  // Add title
+  doc.setFontSize(16);
+  doc.text('Admin Report', 20, 20);
 
   // Add summary data
   doc.setFontSize(12);
-  doc.text(`Total Submissions: ${data.totalSubmissions}`, margin, yPos);
-  yPos += lineHeight;
-  doc.text(`Average Verification Time (hours): ${Math.round(data.avgVerificationTime / (1000 * 60 * 60))}`, margin, yPos);
-  yPos += lineHeight;
-  doc.text(`Total Document Submissions: ${data.documentStats.psaSubmitted + data.documentStats.awardsSubmitted + data.documentStats.gradPhotoSubmitted}`, margin, yPos);
-  yPos += lineHeight * 2;
+  doc.text(`Total Submissions: ${data.totalSubmissions}`, 20, 40);
+  doc.text(`Average Verification Time: ${Math.round(data.avgVerificationTime / (1000 * 60 * 60))} hours`, 20, 50);
+  doc.text(`Total Document Submissions: ${data.documentStats.psaSubmitted + data.documentStats.awardsSubmitted + data.documentStats.gradPhotoSubmitted}`, 20, 60);
 
   // Add submissions by status
-  doc.setFontSize(14);
-  doc.text('Submissions by Status', margin, yPos);
-  yPos += lineHeight;
-  doc.setFontSize(10);
+  doc.text('Submissions by Status:', 20, 80);
+  let y = 90;
   data.submissionsByStatus.forEach((item: SubmissionStatus) => {
-    doc.text(`${item.overallStatus}: ${item._count}`, margin, yPos);
-    yPos += lineHeight;
+    doc.text(`${item.overallStatus}: ${item._count}`, 30, y);
+    y += 10;
   });
-  yPos += lineHeight;
 
   // Add submissions by month
-  doc.setFontSize(14);
-  doc.text('Submissions by Month', margin, yPos);
-  yPos += lineHeight;
-  doc.setFontSize(10);
+  y += 10;
+  doc.text('Submissions by Month:', 20, y);
+  y += 10;
   data.submissionsByMonth.forEach((item: SubmissionMonth) => {
-    doc.text(`${format(new Date(item.createdAt), 'MMM yyyy')}: ${item._count}`, margin, yPos);
-    yPos += lineHeight;
+    doc.text(`${format(new Date(item.createdAt), 'MMM yyyy')}: ${item._count}`, 30, y);
+    y += 10;
   });
-  yPos += lineHeight;
 
   // Add document type statistics
-  doc.setFontSize(14);
-  doc.text('Document Type Statistics', margin, yPos);
-  yPos += lineHeight;
-  doc.setFontSize(10);
-  doc.text(`PSA Certificate Submitted: ${data.documentStats.psaSubmitted}`, margin, yPos);
-  yPos += lineHeight;
-  doc.text(`Award Certificate Submitted: ${data.documentStats.awardsSubmitted}`, margin, yPos);
-  yPos += lineHeight;
-  doc.text(`Graduation Photo Submitted: ${data.documentStats.gradPhotoSubmitted}`, margin, yPos);
+  y += 10;
+  doc.text('Document Type Statistics:', 20, y);
+  y += 10;
+  doc.text(`PSA Certificate Submitted: ${data.documentStats.psaSubmitted}`, 30, y);
+  y += 10;
+  doc.text(`Award Certificate Submitted: ${data.documentStats.awardsSubmitted}`, 30, y);
+  y += 10;
+  doc.text(`Graduation Photo Submitted: ${data.documentStats.gradPhotoSubmitted}`, 30, y);
 
-  const buffer = Buffer.from(doc.output('arraybuffer'));
   return {
-    buffer,
+    buffer: Buffer.from(doc.output('arraybuffer')),
     contentType: 'application/pdf',
     filename: `${filename}.pdf`,
   };

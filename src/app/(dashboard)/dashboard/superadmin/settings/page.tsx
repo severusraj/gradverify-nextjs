@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { superadminChangePassword, updateProfile } from "@/actions/superadmin-settings.actions";
 
 export default function SuperAdminSettingsPage() {
@@ -26,14 +25,14 @@ export default function SuperAdminSettingsPage() {
 
   // Fetch current user on mount
   useEffect(() => {
-    fetch("/api/current-user")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setProfile({ name: data.user.name, email: data.user.email });
-          setUserId(data.user.id);
-        }
-      });
+    (async () => {
+      const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+      const data = await getCurrentUserServer();
+      if (data.user) {
+        setProfile({ name: data.user.name, email: data.user.email });
+        setUserId(data.user.id);
+      }
+    })();
   }, []);
 
   // Profile validation

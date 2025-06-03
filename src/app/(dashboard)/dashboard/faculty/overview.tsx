@@ -17,15 +17,17 @@ export default function FacultyOverviewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/faculty/stats")
-      .then((res) => res.json())
-      .then((data) => {
+    (async () => {
+      try {
+        const { getFacultyStats } = await import("@/actions/faculty-stats.actions");
+        const data = await getFacultyStats();
         setStats(data.stats);
-      })
-      .catch(() => {
+      } catch {
         setStats({ pending: 0, approved: 0, rejected: 0, notSubmitted: 0, total: 0 });
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   return (
