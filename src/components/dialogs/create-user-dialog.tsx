@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { createAdminOrFacultyUser } from "@/actions/superadmin-users.actions";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -34,23 +35,36 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
     password: "",
     role: "ADMIN", // Default role
   });
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setFieldErrors({});
+
+    // Client-side validation
+    const errors: { name?: string; email?: string; password?: string } = {};
+    if (formData.name.trim().length < 2) {
+      errors.name = "Name must be at least 2 characters.";
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+      errors.password = "Password must be at least 8 characters, include uppercase, lowercase, number, and special character.";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch("/api/users/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      const result = await createAdminOrFacultyUser({
+        ...formData,
+        role: formData.role as "ADMIN" | "FACULTY"
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         toast.success("User created successfully");
         onOpenChange(false);
         // Reset form
@@ -61,7 +75,16 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
           role: "ADMIN",
         });
       } else {
-        throw new Error(data.message || "Something went wrong");
+        // Show server-side validation errors if present
+        if (result.details) {
+          const details = result.details as any;
+          setFieldErrors({
+            name: details.name?._errors?.[0],
+            email: details.email?._errors?.[0],
+            password: details.password?._errors?.[0],
+          });
+        }
+        toast.error(result.message || "Something went wrong");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create user");
@@ -89,6 +112,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               placeholder="John Doe"
               required
             />
+            {fieldErrors.name && <div className="text-red-600 text-sm">{fieldErrors.name}</div>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -100,6 +124,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               placeholder="john@example.com"
               required
             />
+            {fieldErrors.email && <div className="text-red-600 text-sm">{fieldErrors.email}</div>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -111,6 +136,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               placeholder="••••••••"
               required
             />
+            {fieldErrors.password && <div className="text-red-600 text-sm">{fieldErrors.password}</div>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>

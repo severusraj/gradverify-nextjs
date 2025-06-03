@@ -19,6 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { getSuperadminReport } from "@/actions/superadmin-reports.actions";
 
 interface ReportData {
   verificationStats?: any[];
@@ -76,22 +77,11 @@ const reportTypes = [
 
   const fetchReports = async () => {
     if (!selectedType) return;
-    
     setLoading(true);
     setError(null);
-    
     try {
-      // Always request JSON for display (no format param)
-      const response = await fetch(
-        `/api/superadmin/reports?type=${selectedType}&period=${selectedPeriod}`
-      );
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch reports");
-      }
-      
-      setReportData(data.data);
+      const result = await getSuperadminReport({ type: selectedType, period: selectedPeriod });
+      setReportData(result);
     } catch (_err) {
       setError(_err instanceof Error ? _err.message : "Failed to fetch reports");
     } finally {

@@ -176,6 +176,26 @@ async function main() {
 
   console.log('✅ Created students with profiles');
 
+  // Create awards for some students
+  for (let i = 0; i < students.length; i++) {
+    // Give every 3rd student an award
+    if (i % 3 === 0) {
+      await prisma.award.create({
+        data: {
+          name: `Academic Excellence Award ${i + 1}`,
+          description: "Seeded Academic Award for demo purposes.",
+          category: "Academic",
+          year: "2024",
+          studentId: students[i].id,
+          s3Key: `dummy-award-key-${i + 1}`,
+          status: "PENDING"
+        }
+      });
+    }
+  }
+
+  console.log('✅ Created awards for some students');
+
   // Create audit logs
   const allUsers = [...admins, ...faculty, ...students];
   const auditLogs = await Promise.all(

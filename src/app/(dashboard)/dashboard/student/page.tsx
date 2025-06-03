@@ -34,17 +34,12 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
   // Prepare download URLs if profile exists
   let psaUrl = null;
   let gradPhotoUrl = null;
-  let awardsUrl = null;
   if (profile) {
-    // Add null checks before calling getSignedDownloadUrl
     if (profile.psaS3Key) {
       psaUrl = await getSignedDownloadUrl(profile.psaS3Key);
     }
     if (profile.gradPhotoS3Key) {
       gradPhotoUrl = await getSignedDownloadUrl(profile.gradPhotoS3Key);
-    }
-    if (profile.awardsS3Key) {
-      awardsUrl = await getSignedDownloadUrl(profile.awardsS3Key);
     }
   }
 
@@ -125,11 +120,6 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
                      ) : (
                       <li>
                         <span className="text-muted-foreground">Graduation Photo: Not Submitted</span>
-                      </li>
-                    )}
-                    {awardsUrl && (
-                      <li>
-                        <a href={awardsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Download Academic Awards</a>
                       </li>
                     )}
                   </ul>

@@ -16,6 +16,7 @@ import {
 	Send,
 	LogOut,
 	User,
+	Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,6 +55,11 @@ const navItems = {
 			href: "/dashboard/superadmin/reports",
 			title: "Reports",
 			icon: <FileText className="w-4 h-4" />,
+		},
+		{
+			href: "/dashboard/superadmin/audit-logs",
+			title: "Audit Logs",
+			icon: <Shield className="w-4 h-4" />,
 		},
 		{
 			href: "/dashboard/superadmin/settings",
@@ -152,17 +158,24 @@ export default function DashboardLayout({
 				if (data.user) {
 					setUser(data.user);
 				} else {
-					router.push("/login");
+					setUser(null);
 				}
 			} catch (error) {
 				console.error("Error fetching user:", error);
-				router.push("/login");
+				setUser(null);
 			} finally {
 				setLoading(false);
 			}
 		};
 		fetchUser();
 	}, [router]);
+
+	// Redirect to login if not loading and user is null
+	useEffect(() => {
+		if (!loading && !user) {
+			router.push("/login");
+		}
+	}, [loading, user, router]);
 
 	if (loading) {
 		return (
@@ -173,7 +186,6 @@ export default function DashboardLayout({
 	}
 
 	if (!user) {
-		router.push("/login");
 		return null;
 	}
 

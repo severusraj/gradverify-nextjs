@@ -46,7 +46,6 @@ model StudentProfile {
   pob            String
   psaS3Key       String
   gradPhotoS3Key String
-  awardsS3Key    String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   feedback       String?
@@ -69,15 +68,17 @@ model AuditLog {
 }
 
 model Award {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   name        String
   description String
   category    String
   year        String
   studentId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  s3Key       String?
+  status      SubmissionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  student     User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model Invitation {

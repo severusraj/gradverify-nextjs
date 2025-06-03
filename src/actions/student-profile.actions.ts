@@ -56,6 +56,19 @@ export async function submitStudentProfile(
     if (awards) {
       const awardsBuffer = Buffer.from(await awards.arrayBuffer());
       awardsKey = await uploadToS3(awardsBuffer, awards.name, awards.type);
+      
+      // Create Award record
+      await prisma.award.create({
+        data: {
+          name: awards.name,
+          description: "Academic Award Certificate",
+          category: "Academic",
+          year: new Date().getFullYear().toString(),
+          studentId: user.id,
+          s3Key: awardsKey,
+          status: "PENDING"
+        }
+      });
     }
 
     // Store profile and file info in the database
@@ -69,9 +82,9 @@ export async function submitStudentProfile(
         pob,
         psaS3Key: psaKey,
         gradPhotoS3Key: gradPhotoKey,
-        awardsS3Key: awardsKey,
         psaStatus: "PENDING",
         overallStatus: "PENDING",
+        awardStatus: awards ? "PENDING" : "NOT_SUBMITTED"
       },
       create: {
         userId: user.id,
@@ -82,9 +95,9 @@ export async function submitStudentProfile(
         pob,
         psaS3Key: psaKey,
         gradPhotoS3Key: gradPhotoKey,
-        awardsS3Key: awardsKey,
         psaStatus: "PENDING",
         overallStatus: "PENDING",
+        awardStatus: awards ? "PENDING" : "NOT_SUBMITTED"
       },
     });
 

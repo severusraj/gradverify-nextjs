@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const avgVerificationTime = approvedSubmissions.reduce((acc: number, submission) => {
+    const avgVerificationTime = approvedSubmissions.reduce((acc: number, submission: { createdAt: Date; updatedAt: Date }) => {
       const verificationTime = submission.updatedAt.getTime() - submission.createdAt.getTime();
       return acc + verificationTime;
     }, 0) / (approvedSubmissions.length || 1);
@@ -124,11 +124,8 @@ export async function GET(req: NextRequest) {
           psaS3Key: { not: "" },
         },
       }),
-      awardsSubmitted: await prisma.studentProfile.count({
-        where: {
-          ...dateFilter,
-          awardsS3Key: { not: null },
-        },
+      awardsSubmitted: await prisma.award.count({
+        where: dateFilter,
       }),
       gradPhotoSubmitted: await prisma.studentProfile.count({
         where: {

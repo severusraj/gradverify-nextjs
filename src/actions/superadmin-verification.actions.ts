@@ -2,6 +2,7 @@
 
 import { prisma } from "@/db/prisma";
 import { z } from "zod";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
 // Define SubmissionStatus enum locally to match your schema
 const SubmissionStatus = {
@@ -66,5 +67,92 @@ export async function updateStudentVerificationStatus({ studentId, status, feedb
   } catch (error) {
     console.error("Update verification error:", error);
     return { success: false, message: "Failed to update verification status" };
+  }
+}
+
+export async function getStudentPSAUrl(studentId: string) {
+  try {
+    if (!studentId) {
+      return { success: false, error: "Student ID is required" };
+    }
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      select: { psaS3Key: true }
+    });
+    if (!student) {
+      return { success: false, error: "Student not found" };
+    }
+    if (!student.psaS3Key) {
+      return { success: false, error: "PSA file not found" };
+    }
+    const url = await getSignedDownloadUrl(student.psaS3Key);
+    return { success: true, url };
+  } catch (error) {
+    console.error("Error fetching PSA URL:", error);
+    return { success: false, error: "Failed to fetch PSA URL" };
+  }
+}
+
+const verificationListSchema = z.object({
+  department: z.string().optional(),
+  status: z.string().optional(),
+  page: z.number().optional(),
+  limit: z.number().optional(),
+});
+
+export async function getSuperadminVerificationList({ department = "all", status = "all", page = 1, limit = 10 }: {
+  department?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}) {
+  try {
+    // Build where clause
+    const where: any = {};
+    if (department && department !== "all") {
+      where.department = department;
+    }
+    if (status && status !== "all") {
+      where.overallStatus = status;
+    }
+    // Get total count for pagination
+    const total = await prisma.studentProfile.count({ where });
+    // Fetch student profiles with pagination
+    const students = await prisma.studentProfile.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+    // Stats
+    const [pending, approved, rejected] = await Promise.all([
+      prisma.studentProfile.count({ where: { ...where, overallStatus: "PENDING" } }),
+      prisma.studentProfile.count({ where: { ...where, overallStatus: "APPROVED" } }),
+      prisma.studentProfile.count({ where: { ...where, overallStatus: "REJECTED" } }),
+    ]);
+    return {
+      success: true,
+      data: {
+        students,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          current: page,
+          limit,
+        },
+        stats: {
+          total,
+          pending,
+          approved,
+          rejected,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching verification list:", error);
+    return { success: false, error: "Failed to fetch verification list" };
   }
 } 

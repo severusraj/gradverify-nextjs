@@ -11,14 +11,6 @@ const userSchema = z.object({
   password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"),
 });
 
-const updateSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  role: z.enum(["ADMIN", "FACULTY"]).optional(),
-  password: z.string().min(8)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")
-    .optional(),
-});
-
 export async function createAdminOrFacultyUser({ name, email, role, password }: {
   name: string;
   email: string;
@@ -108,5 +100,25 @@ export async function deleteAdminOrFacultyUser({ id }: { id: string }) {
   } catch (error) {
     console.error("Delete user error:", error);
     return { success: false, message: "Failed to delete user" };
+  }
+}
+
+export async function listAdminAndFacultyUsers() {
+  try {
+    const users = await prisma.user.findMany({
+      where: { role: { in: ["ADMIN", "FACULTY"] } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return { success: true, users };
+  } catch (error) {
+    console.error("List users error:", error);
+    return { success: false, message: "Failed to fetch users" };
   }
 } 
