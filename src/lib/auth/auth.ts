@@ -14,8 +14,8 @@ const SECRET = new TextEncoder().encode(process.env.SECRET_KEY);
 export type AuthPayload = {
 	id: string;
 	email: string;
+	name: string;
 	role: "STUDENT" | "ADMIN" | "SUPER_ADMIN" | "FACULTY";
-	name?: string;
 };
 
 export async function signAuthToken(payload: AuthPayload) {

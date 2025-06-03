@@ -23,14 +23,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { listAdminAndFacultyUsers, deleteAdminOrFacultyUser } from "@/actions/superadmin-users.actions";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: string;
-}
+import type { User } from "@/lib/utils/current-user";
 
 export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
   const [users, setUsers] = useState<User[]>(propUsers || []);
@@ -126,7 +119,7 @@ export function UserManagementTable({ users: propUsers }: { users?: User[] }) {
               <TableCell className="capitalize">
                 {user.role.toLowerCase().replace("_", " ")}
               </TableCell>
-              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>{user.createdAt.toLocaleDateString()}</TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

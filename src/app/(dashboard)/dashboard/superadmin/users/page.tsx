@@ -19,7 +19,7 @@ export default function UserManagementPage() {
     (async () => {
       const result = await listAdminAndFacultyUsers();
       if (result.success) {
-        setUsers((result.users ?? []).map((u: any) => ({ ...u, createdAt: u.createdAt?.toISOString?.() ?? "" })));
+        setUsers(result.users ?? []);
         setLoading(false);
       } else {
         setError("Failed to load users");

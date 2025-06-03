@@ -4,6 +4,8 @@ import { prisma } from "@/db/prisma";
 import { getCurrentUser } from "@/lib/utils/current-user";
 import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
+type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "NOT_SUBMITTED";
+
 export async function adminBulkRejectVerifications({ ids }: { ids: string[] }) {
   try {
     if (!Array.isArray(ids)) {
@@ -121,8 +123,8 @@ export async function getVerificationSubmission(id: string) {
 export async function updateVerificationSubmission(
   id: string,
   data: {
-    psaStatus?: string;
-    awardStatus?: string;
+    psaStatus?: SubmissionStatus;
+    awardStatus?: SubmissionStatus;
     feedback?: string;
   }
 ) {
@@ -137,15 +139,15 @@ export async function updateVerificationSubmission(
       return { success: false, message: "Verification ID is required" };
     }
 
-    // Update individual document statuses and feedback
+    // Only include fields that are present
+    const updateData: any = {};
+    if (data.psaStatus) updateData.psaStatus = data.psaStatus;
+    if (data.awardStatus) updateData.awardStatus = data.awardStatus;
+    if (data.feedback) updateData.feedback = data.feedback;
+
     const updatedSubmission = await prisma.studentProfile.update({
       where: { id },
-      data: {
-        psaStatus: data.psaStatus || undefined,
-        awardStatus: data.awardStatus || undefined,
-        feedback: data.feedback || undefined,
-      },
-      // Include user data in the response after update
+      data: updateData,
       include: {
         user: {
           select: {
@@ -195,26 +197,32 @@ export async function getVerificationCertificateUrl(id: string, type: "psa" | "a
       return { success: false, message: "Invalid certificate type" };
     }
 
-    const submission = await prisma.studentProfile.findUnique({
-      where: { id },
-      select: {
-        psaS3Key: true,
-        awardsS3Key: true,
-        gradPhotoS3Key: true,
-      },
-    });
-
-    if (!submission) {
-      return { success: false, message: "Submission not found" };
-    }
-
     let s3Key: string | null = null;
-    if (type === "psa") {
-      s3Key = submission.psaS3Key;
-    } else if (type === "award") {
-      s3Key = submission.awardsS3Key;
-    } else if (type === "gradPhoto") {
-      s3Key = submission.gradPhotoS3Key;
+
+    if (type === "award") {
+      // Fetch the award for this student profile
+      const award = await prisma.award.findFirst({
+        where: { studentId: id },
+        select: { s3Key: true },
+      });
+      s3Key = award?.s3Key || null;
+    } else {
+      // Fetch the student profile for PSA or gradPhoto
+      const submission = await prisma.studentProfile.findUnique({
+        where: { id },
+        select: {
+          psaS3Key: true,
+          gradPhotoS3Key: true,
+        },
+      });
+      if (!submission) {
+        return { success: false, message: "Submission not found" };
+      }
+      if (type === "psa") {
+        s3Key = submission.psaS3Key;
+      } else if (type === "gradPhoto") {
+        s3Key = submission.gradPhotoS3Key;
+      }
     }
 
     if (!s3Key) {

@@ -7,7 +7,7 @@ export async function getSuperadminDashboardStats() {
   try {
     const user = await getSessionUser<AuthPayload>();
     if (!user || user.role !== "SUPER_ADMIN") {
-      return { success: false, error: "Unauthorized" };
+      return { success: false, message: "Forbidden" };
     }
 
     const [

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils/utils";
 import Link from "next/link";
+import Head from "next/head";
 
 export default function HomePage() {
 	// Parallax state
@@ -32,32 +33,35 @@ export default function HomePage() {
 
 	return (
 		<div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 overflow-hidden" onMouseMove={handleMouseMove}>
-			{/* More vibrant, larger, and more visible animated blobs */}
-			<div className="absolute -top-40 -left-40 w-[520px] h-[520px] bg-gradient-to-br from-blue-500 via-blue-300 to-indigo-300 opacity-60 rounded-full blur-2xl z-0" style={blob1} />
-			<div className="absolute bottom-0 right-0 w-[420px] h-[420px] bg-gradient-to-tr from-indigo-400 via-blue-200 to-blue-100 opacity-50 rounded-full blur-2xl z-0" style={blob2} />
-			<div className="absolute top-1/2 left-1/2 w-[320px] h-[320px] bg-gradient-to-br from-blue-200 via-blue-300 to-indigo-200 opacity-50 rounded-full blur-2xl z-0" style={blob3} />
-			<div className="absolute top-1/3 right-1/2 w-[260px] h-[260px] bg-gradient-to-br from-indigo-300 via-blue-200 to-blue-400 opacity-40 rounded-full blur-2xl z-0" style={blob4} />
-			{/* More visible floating particles */}
-			<div className="absolute top-1/4 left-1/3 w-3 h-3 bg-blue-400 rounded-full opacity-80 animate-particle-float-1 z-0" />
-			<div className="absolute top-2/3 right-1/4 w-2 h-2 bg-indigo-300 rounded-full opacity-70 animate-particle-float-2 z-0" />
-			<div className="absolute bottom-1/3 left-1/4 w-2 h-2 bg-blue-300 rounded-full opacity-60 animate-particle-float-3 z-0" />
-			<div className="absolute bottom-1/4 right-1/3 w-3 h-3 bg-blue-500 rounded-full opacity-70 animate-particle-float-4 z-0" />
+			<Head>
+				<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+			</Head>
+			{/* Responsive blobs/particles: hide or shrink on mobile */}
+			<div className="absolute -top-40 -left-40 w-[320px] h-[320px] sm:w-[520px] sm:h-[520px] bg-gradient-to-br from-blue-500 via-blue-300 to-indigo-300 opacity-60 rounded-full blur-2xl z-0" style={blob1} />
+			<div className="absolute bottom-0 right-0 w-[180px] h-[180px] sm:w-[420px] sm:h-[420px] bg-gradient-to-tr from-indigo-400 via-blue-200 to-blue-100 opacity-50 rounded-full blur-2xl z-0" style={blob2} />
+			<div className="absolute top-1/2 left-1/2 w-[120px] h-[120px] sm:w-[320px] sm:h-[320px] bg-gradient-to-br from-blue-200 via-blue-300 to-indigo-200 opacity-50 rounded-full blur-2xl z-0" style={blob3} />
+			<div className="absolute top-1/3 right-1/2 w-[80px] h-[80px] sm:w-[260px] sm:h-[260px] bg-gradient-to-br from-indigo-300 via-blue-200 to-blue-400 opacity-40 rounded-full blur-2xl z-0" style={blob4} />
+			{/* Hide some particles on mobile */}
+			<div className="hidden sm:block absolute top-1/4 left-1/3 w-3 h-3 bg-blue-400 rounded-full opacity-80 animate-particle-float-1 z-0" />
+			<div className="hidden sm:block absolute top-2/3 right-1/4 w-2 h-2 bg-indigo-300 rounded-full opacity-70 animate-particle-float-2 z-0" />
+			<div className="hidden sm:block absolute bottom-1/3 left-1/4 w-2 h-2 bg-blue-300 rounded-full opacity-60 animate-particle-float-3 z-0" />
+			<div className="hidden sm:block absolute bottom-1/4 right-1/3 w-3 h-3 bg-blue-500 rounded-full opacity-70 animate-particle-float-4 z-0" />
 
-			<main className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-6 py-16 gap-10">
+			<main className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-16 gap-8 sm:gap-10">
 				<span className="inline-block px-4 py-1 mb-4 rounded-full bg-blue-100 text-blue-700 font-semibold text-xs tracking-widest shadow-sm animate-fade-in">
 					Gordon College Official
 				</span>
-				<h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center tracking-tight bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-400 bg-clip-text text-transparent animate-fade-in-up">
+				<h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-center tracking-tight bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-400 bg-clip-text text-transparent animate-fade-in-up">
 					Secure Graduation Verification
 				</h1>
-				<p className="text-lg sm:text-xl text-center text-blue-900/80 max-w-2xl animate-fade-in-up delay-100">
+				<p className="text-base sm:text-lg md:text-xl text-center text-blue-900/80 max-w-2xl animate-fade-in-up delay-100">
 					A reliable, secure, and modern way to verify graduation status and protect the integrity of your academic credentials at Gordon College.
 				</p>
-				<div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 animate-fade-in-up delay-200">
-					<Link href="/login" className={cn(buttonVariants(), "px-8 py-3 text-lg shadow-lg hover:scale-105 transition-transform duration-200")}>Get Started</Link>
-					<Link href="/register" className={cn(buttonVariants({ variant: "outline" }), "px-8 py-3 text-lg border-blue-600 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform duration-200")}>Create an Account</Link>
+				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 animate-fade-in-up delay-200 w-full">
+					<Link href="/login" className={cn(buttonVariants(), "px-6 py-3 sm:px-8 sm:py-3 text-base sm:text-lg shadow-lg w-full sm:w-auto hover:scale-105 transition-transform duration-200")}>Get Started</Link>
+					<Link href="/register" className={cn(buttonVariants({ variant: "outline" }), "px-6 py-3 sm:px-8 sm:py-3 text-base sm:text-lg border-blue-600 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform duration-200 w-full sm:w-auto")}>Create an Account</Link>
 				</div>
-				<div className="mt-10 flex flex-col items-center gap-2 animate-fade-in-up delay-300">
+				<div className="mt-6 sm:mt-10 flex flex-col items-center gap-2 animate-fade-in-up delay-300">
 					<span className="text-xs text-blue-500 font-medium tracking-wide uppercase">Trusted by students, faculty, and employers</span>
 					<div className="flex gap-2 mt-2">
 						<span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />

@@ -50,7 +50,13 @@ export default function VerificationPage() {
           throw new Error(message || "Failed to fetch submissions");
         }
 
-        setSubmissions(data);
+        setSubmissions(
+          data.map((submission: any) => ({
+            ...submission,
+            createdAt: submission.createdAt instanceof Date ? submission.createdAt.toISOString() : submission.createdAt,
+            updatedAt: submission.updatedAt instanceof Date ? submission.updatedAt.toISOString() : submission.updatedAt,
+          }))
+        );
       } catch (_err: unknown) {
         setError(_err instanceof Error ? _err.message : "Failed to load submissions");
         console.error(_err);
@@ -96,7 +102,13 @@ export default function VerificationPage() {
         throw new Error(refreshMessage || "Failed to refresh submissions");
       }
 
-      setSubmissions(refreshData);
+      setSubmissions(
+        refreshData.map((submission: any) => ({
+          ...submission,
+          createdAt: submission.createdAt instanceof Date ? submission.createdAt.toISOString() : submission.createdAt,
+          updatedAt: submission.updatedAt instanceof Date ? submission.updatedAt.toISOString() : submission.updatedAt,
+        }))
+      );
     } catch (_err: unknown) {
       toast.error(`Failed to ${action} submissions`);
       console.error(_err);

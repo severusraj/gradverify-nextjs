@@ -308,7 +308,7 @@ export async function createUserAsSuperAdmin({ name, email, password, role }: { 
 		// Check if the current user is a super admin
 		const currentUser = await getCurrentUser();
 		if (!currentUser || currentUser.role !== "SUPER_ADMIN") {
-			return { success: false, message: "Unauthorized" };
+			return { success: false, message: "Forbidden" };
 		}
 
 		// Validate input
