@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
+import { facultyUpdateProfile } from "@/actions/faculty.actions";
 
 type User = { email: string; role: string; name?: string } | null;
 type Errors = { name?: string; password?: string; newPassword?: string; confirmPassword?: string };
@@ -65,14 +66,32 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!isFormValid) return;
     setSaving(true);
-    // TODO: Call your API to update name and/or password
-    setTimeout(() => {
-      setSaving(false);
-      toast.success("Settings updated!");
+    try {
+      let result = { success: false, message: "" };
+      if (user?.role === "FACULTY") {
+        result = await facultyUpdateProfile({ name, email: user.email });
+      } else {
+        // TODO: Add logic for other roles (admin, superadmin, student) if needed
+        result = { success: true, message: "" };
+      }
+      if (result.success) {
+        toast.success("Settings updated!");
+        // Re-fetch user to update UI
+        const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+        const data = await getCurrentUserServer();
+        setUser(data.user);
+        setName(data.user?.name || "");
+      } else {
+        toast.error(result.message || "Failed to update settings");
+      }
       setPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    }, 1000);
+    } catch (err) {
+      toast.error("Failed to update settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
