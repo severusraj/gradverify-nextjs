@@ -32,7 +32,7 @@ interface ReportData {
 }
 
 interface FormattedReport {
-  buffer: Buffer;
+  base64: string;
   contentType: string;
   filename: string;
 }
@@ -153,7 +153,7 @@ export async function getAdminReport(period: string = 'monthly', formatType?: st
       return { 
         success: true, 
         data: {
-          buffer: formattedReport.buffer,
+          base64: formattedReport.base64,
           contentType: formattedReport.contentType,
           filename: formattedReport.filename
         }
@@ -227,7 +227,7 @@ async function generateCSV(data: ReportData, filename: string): Promise<Formatte
   const csv = parser.parse(csvData);
 
   return {
-    buffer: Buffer.from(csv),
+    base64: Buffer.from(csv).toString('base64'),
     contentType: 'text/csv',
     filename: `${filename}.csv`,
   };
@@ -268,7 +268,7 @@ async function generateExcel(data: ReportData, filename: string): Promise<Format
 
   const buffer = await workbook.xlsx.writeBuffer();
   return {
-    buffer: Buffer.from(buffer),
+    base64: Buffer.from(buffer).toString('base64'),
     contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     filename: `${filename}.xlsx`,
   };
@@ -314,8 +314,9 @@ async function generatePDF(data: ReportData, filename: string): Promise<Formatte
   y += 10;
   doc.text(`Graduation Photo Submitted: ${data.documentStats.gradPhotoSubmitted}`, 30, y);
 
+  const pdfBuffer = doc.output('arraybuffer');
   return {
-    buffer: Buffer.from(doc.output('arraybuffer')),
+    base64: Buffer.from(pdfBuffer).toString('base64'),
     contentType: 'application/pdf',
     filename: `${filename}.pdf`,
   };

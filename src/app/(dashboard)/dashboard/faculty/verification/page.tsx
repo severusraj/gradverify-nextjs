@@ -31,6 +31,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { facultyVerifyDocument } from "@/actions/faculty.actions";
 
 interface Student {
   id: string;
@@ -98,17 +99,8 @@ export default function FacultyVerificationPage() {
   const handleVerification = async (studentId: string, action: "approve" | "reject") => {
     try {
       setIsVerifying(true);
-      const response = await fetch(`/api/faculty/verify/${studentId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, feedback }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to process verification");
-      }
-      
+      const result = await facultyVerifyDocument({ studentId, action, feedback });
+      if (!result.success) throw new Error(result.message || "Failed to process verification");
       toast.success(`Document ${action === "approve" ? "approved" : "rejected"} successfully`);
       setSelectedStudent(null);
       setFeedback("");

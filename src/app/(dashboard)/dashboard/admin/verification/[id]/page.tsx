@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { getVerificationSubmission, updateVerificationSubmission, getVerificationCertificateUrl } from "@/actions/admin-verification.actions";
 
 interface Submission {
   id: string;
@@ -24,9 +25,9 @@ interface Submission {
   feedback: string | null;
   psaStatus: string;
   awardStatus: string;
-  psaS3Key: string | null;
-  gradPhotoS3Key: string | null;
-  awardsS3Key: string | null;
+  psaS3Key?: string | null;
+  gradPhotoS3Key?: string | null;
+  awardsS3Key?: string | null;
   createdAt: string;
 }
 
@@ -37,36 +38,26 @@ export default function ReviewSubmissionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [psaStatus, setPsaStatus] = useState("");
-  const [awardStatus, setAwardStatus] = useState("");
+  const [psaStatus, setPsaStatus] = useState<any>("");
+  const [awardStatus, setAwardStatus] = useState<any>("");
 
   useEffect(() => {
     const fetchSubmission = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`/api/admin/verification/${params.id}`);
-        
-        // --- Debugging: Log response status and body if not OK ---
-        if (!response.ok) {
-          console.error("Fetch submission failed:", response.status, response.statusText);
-          try {
-            const errorBody = await response.text();
-            console.error("Response body:", errorBody);
-            const errorData = JSON.parse(errorBody);
-             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-          } catch (jsonError) {
-             console.error("Failed to parse error response as JSON:", jsonError);
-             throw new Error(`HTTP error! status: ${response.status}`);
-          }
-        }
-        // --- End Debugging ---
-
-        const data = await response.json();
-        setSubmission(data);
-        setFeedback(data.feedback || "");
-        setPsaStatus(data.psaStatus);
-        setAwardStatus(data.awardStatus);
+        const result = await getVerificationSubmission(params.id as string);
+        if (!result.success || !result.data) throw new Error(result.message || "Failed to load submission");
+        setSubmission({
+          ...result.data,
+          createdAt: typeof result.data.createdAt === "string" ? result.data.createdAt : result.data.createdAt?.toISOString?.() ?? "",
+          psaS3Key: result.data.psaS3Key ?? null,
+          gradPhotoS3Key: result.data.gradPhotoS3Key ?? null,
+          ...(typeof (result.data as any).awardsS3Key === "string" ? { awardsS3Key: (result.data as any).awardsS3Key } : {}),
+        });
+        setFeedback(result.data.feedback || "");
+        setPsaStatus(result.data.psaStatus);
+        setAwardStatus(result.data.awardStatus);
       } catch (_err: unknown) {
         setError(_err instanceof Error ? _err.message : "Failed to load submission");
         console.error(_err);
@@ -74,28 +65,17 @@ export default function ReviewSubmissionPage() {
         setLoading(false);
       }
     };
-
     fetchSubmission();
   }, [params.id]);
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`/api/admin/verification/${params.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          psaStatus,
-          awardStatus,
-          feedback,
-        }),
+      const result = await updateVerificationSubmission(submission!.id, {
+        psaStatus,
+        awardStatus,
+        feedback,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to update submission");
-      }
-
+      if (!result.success) throw new Error(result.message || "Failed to update submission");
       toast.success("Submission updated successfully");
       router.push("/dashboard/admin/verification");
     } catch (_err: unknown) {
@@ -105,25 +85,10 @@ export default function ReviewSubmissionPage() {
   };
 
   const handlePreviewCertificate = async (certificateType: "psa" | "award" | "gradPhoto") => {
-    let s3Key: string | null | undefined;
-    if (certificateType === "psa") {
-      s3Key = submission?.psaS3Key;
-    } else if (certificateType === "award") {
-      s3Key = submission?.awardsS3Key;
-    } else if (certificateType === "gradPhoto") {
-      s3Key = submission?.gradPhotoS3Key;
-    }
-
-    if (!s3Key) return;
-
     try {
-      const response = await fetch(`/api/admin/verification/${submission?.id}/certificate?type=${certificateType}`);
-      if (!response.ok) throw new Error("Failed to get certificate URL");
-      const data = await response.json();
-      const url = data.url;
-
-      window.open(url, '_blank');
-
+      const result = await getVerificationCertificateUrl(submission!.id, certificateType);
+      if (!result.success || !result.data?.url) throw new Error(result.message || "Failed to get certificate URL");
+      window.open(result.data.url, '_blank');
     } catch (_err: unknown) {
       toast.error("Failed to preview certificate");
       console.error(_err);
@@ -131,25 +96,11 @@ export default function ReviewSubmissionPage() {
   };
 
   const handleDownloadCertificate = async (certificateType: "psa" | "award" | "gradPhoto", filename: string) => {
-    let s3Key: string | null | undefined;
-    if (certificateType === "psa") {
-      s3Key = submission?.psaS3Key;
-    } else if (certificateType === "award") {
-      s3Key = submission?.awardsS3Key;
-    } else if (certificateType === "gradPhoto") {
-      s3Key = submission?.gradPhotoS3Key;
-    }
-
-    if (!s3Key) return;
-
     try {
-      const response = await fetch(`/api/admin/verification/${submission?.id}/certificate?type=${certificateType}&download=true`);
-      if (!response.ok) throw new Error("Failed to get download URL");
-      const data = await response.json();
-      const url = data.url;
-
+      const result = await getVerificationCertificateUrl(submission!.id, certificateType);
+      if (!result.success || !result.data?.url) throw new Error(result.message || "Failed to get download URL");
       const link = document.createElement("a");
-      link.href = url;
+      link.href = result.data.url;
       link.download = filename;
       document.body.appendChild(link);
       link.click();

@@ -90,14 +90,19 @@ export default function AdminReportsPage() {
     setError(null);
     
     try {
-      const result = await getAdminReport(selectedPeriod, selectedFormat);
-      
+      const result = await getAdminReport(selectedPeriod, selectedFormat) as any;
       if (!result.success) {
         throw new Error(result.message || "Failed to generate report");
       }
-
-      const { buffer, contentType, filename } = result.data as FormattedReportData;
-      const blob = new Blob([buffer], { type: contentType });
+      const { base64, contentType, filename } = result.data;
+      // Decode base64 to Uint8Array
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: contentType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { facultyUpdateProfile } from "@/actions/faculty.actions";
 
 
 export default function FacultyProfilePage() {
@@ -101,18 +102,17 @@ export default function FacultyProfilePage() {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/faculty/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profile),
-      });
-      const data = await res.json();
-      if (res.ok) {
+      const result = await facultyUpdateProfile(profile);
+      if (result.success) {
         toast.success("Profile updated successfully");
+        // Re-fetch current user to update UI
+        const { getCurrentUserServer } = await import("@/actions/current-user.actions");
+        const data = await getCurrentUserServer();
+        if (data.user) {
+          setProfile({ name: data.user.name, email: data.user.email });
+        }
       } else {
-        toast.error(data.error || "Failed to update profile");
+        toast.error(result.message || "Failed to update profile");
       }
     } catch {
       toast.error("Failed to update profile");
