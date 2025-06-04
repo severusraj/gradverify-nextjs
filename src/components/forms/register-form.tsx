@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect } from "react";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ export function RegisterForm() {
 	const router = useRouter();
 	const [state, setState] = useState({ success: false, message: "" });
 	const [isPending, startTransition] = useTransition();
+	const [showPassword, setShowPassword] = useState(false);
 
 	useEffect(() => {
 		if (state.success) {
@@ -73,13 +74,24 @@ export function RegisterForm() {
 						<Label htmlFor="password">
 							Password <span className="text-red-500">*</span>
 						</Label>
-						<Input
-							id="password"
-							name="password"
-							type="password"
-							required
-							className="transition-all h-10"
-						/>
+						<div className="relative">
+							<Input
+								id="password"
+								name="password"
+								type={showPassword ? "text" : "password"}
+								required
+								className="transition-all h-10 pr-12"
+							/>
+							<button
+								type="button"
+								className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none"
+								onClick={() => setShowPassword((v) => !v)}
+								tabIndex={-1}
+								aria-label={showPassword ? "Hide password" : "Show password"}
+							>
+								{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+							</button>
+						</div>
 					</div>
 					<Button type="submit" className="w-full h-10" disabled={isPending}>
 						{isPending ? (
