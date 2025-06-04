@@ -19,7 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { getSuperadminReport } from "@/actions/superadmin-reports.actions";
+import { getSuperadminReport, exportSuperadminReport } from "@/actions/superadmin-reports.actions";
 
 interface ReportData {
   verificationStats?: any[];
@@ -91,51 +91,31 @@ const reportTypes = [
 
   const handleGenerateReport = async () => {
     if (!selectedType) return;
-    
     setLoading(true);
     setError(null);
-    
     try {
-      const response = await fetch(
-        `/api/superadmin/reports?type=${selectedType}&period=${selectedPeriod}&format=${selectedFormat}`
-      );
-      
-      if (!response.ok) {
-        // Try to parse error as JSON, fallback to text
-        let errorMsg = "Failed to generate report";
-        try {
-          const data = await response.json();
-          errorMsg = data.error || errorMsg;
-        } catch {
-          // ignore
-        }
-        throw new Error(errorMsg);
+      const result = await exportSuperadminReport({
+        type: selectedType,
+        period: selectedPeriod,
+        formatType: selectedFormat,
+      });
+      if (!result.base64) throw new Error("Failed to generate report");
+      // Convert base64 to Blob
+      const byteCharacters = atob(result.base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-
-      // Get the filename from the Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-        : `${selectedType}_report_${selectedPeriod}.${selectedFormat}`;
-
-      // Create a blob from the response
-      const blob = await response.blob();
-      
-      // Create a download link
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: result.contentType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = filename;
-      
-      // Trigger the download
+      link.download = result.filename;
       document.body.appendChild(link);
       link.click();
-      
-      // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
-      // Do not try to parse the response as JSON after downloading a file
     } catch (_err) {
       setError(_err instanceof Error ? _err.message : "Failed to generate report");
     } finally {
@@ -271,11 +251,15 @@ const reportTypes = [
                   {reportData.recentAwards?.map((award) => (
                     <div key={award.id} className="flex justify-between items-center">
                       <div>
-                        <div className="font-medium">{award.user.name}</div>
-                        <div className="text-sm text-muted-foreground">{award.user.email}</div>
+                        <div className="font-medium">
+                          {award.user?.name ?? <span className="text-red-500">No Name</span>}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {award.user?.email ?? <span className="text-red-500">No Email</span>}
+                        </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {format(new Date(award.updatedAt), "MMM d, yyyy")}
+                        {award.updatedAt ? format(new Date(award.updatedAt), "MMM d, yyyy") : ""}
                       </div>
                     </div>
                   ))}
@@ -313,11 +297,15 @@ const reportTypes = [
                   {reportData.recentActivity?.map((activity) => (
                     <div key={activity.id} className="flex justify-between items-center">
                       <div>
-                        <div className="font-medium">{activity.user.name}</div>
-                        <div className="text-sm text-muted-foreground">{activity.action}</div>
+                        <div className="font-medium">
+                          {activity.user?.name ?? <span className="text-red-500">No Name</span>}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {activity.action ?? <span className="text-red-500">No Action</span>}
+                        </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {format(new Date(activity.createdAt), "MMM d, yyyy")}
+                        {activity.createdAt ? format(new Date(activity.createdAt), "MMM d, yyyy") : ""}
                       </div>
                     </div>
                   ))}

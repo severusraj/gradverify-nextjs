@@ -3,6 +3,10 @@
 import { prisma } from "@/db/prisma";
 import { z } from "zod";
 import { subDays, startOfDay, endOfDay } from "date-fns";
+import { Parser } from "json2csv";
+import ExcelJS from "exceljs";
+import { jsPDF } from "jspdf";
+import { format } from "date-fns";
 
 const reportQuerySchema = z.object({
   type: z.enum(["verification", "department", "awards", "analytics"]).optional(),
@@ -147,4 +151,92 @@ async function getRecentReports() {
     }
   });
   return { recentVerifications, recentAwards };
+}
+
+export async function exportSuperadminReport({ type, period, formatType }: { type: string, period: string, formatType: string }) {
+  const timestamp = format(new Date(), 'yyyyMMdd');
+  const filename = `superadmin_report_${type}_${period}_${timestamp}`;
+  const data = await getSuperadminReport({ type, period });
+
+  if (formatType === 'csv') {
+    // Simple CSV export example
+    const csv = new Parser().parse(data);
+    const buffer = Buffer.from(csv);
+    return {
+      base64: buffer.toString('base64'),
+      contentType: 'text/csv',
+      filename: `${filename}.csv`,
+    };
+  } else if (formatType === 'excel') {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Report');
+    worksheet.addRow(Object.keys(data));
+    worksheet.addRow(Object.values(data));
+    const buffer = await workbook.xlsx.writeBuffer();
+    return {
+      base64: Buffer.from(buffer).toString('base64'),
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      filename: `${filename}.xlsx`,
+    };
+  } else if (formatType === 'pdf') {
+    const doc = new jsPDF();
+    let y = 10;
+    doc.setFontSize(16);
+    doc.text(`Superadmin Report: ${type} (${period})`, 10, y);
+    y += 10;
+
+    // Only show awards-related sections if the data has those properties
+    if (
+      type === 'awards' &&
+      typeof data === 'object' &&
+      data &&
+      'awardStats' in data &&
+      'departmentAwards' in data &&
+      'recentAwards' in data
+    ) {
+      // Award Stats
+      doc.setFontSize(12);
+      doc.text("Award Stats:", 10, y);
+      y += 8;
+      (data.awardStats as Array<{ status: string; _count: number }>).forEach((stat) => {
+        doc.text(`Status: ${stat.status}, Count: ${stat._count}`, 12, y);
+        y += 6;
+      });
+      y += 4;
+
+      // Department Awards
+      doc.text("Department Awards:", 10, y);
+      y += 8;
+      (data.departmentAwards as Array<{ category: string; _count: number }>).forEach((dept) => {
+        doc.text(`Category: ${dept.category}, Count: ${dept._count}`, 12, y);
+        y += 6;
+      });
+      y += 4;
+
+      // Recent Awards
+      doc.text("Recent Awards:", 10, y);
+      y += 8;
+      (data.recentAwards as Array<any>).forEach((award: any, idx: number) => {
+        doc.text(
+          `${idx + 1}. ${award.name} (${award.status}) - ${award.student?.name ?? "Unknown"} - ${award.createdAt ? new Date(award.createdAt).toLocaleDateString() : ""}`,
+          12,
+          y
+        );
+        y += 6;
+        if (y > 270) { doc.addPage(); y = 10; }
+      });
+    } else {
+      // Fallback for other report types or if properties are missing
+      doc.setFontSize(12);
+      doc.text("No detailed awards data available for this report type.", 10, y);
+    }
+
+    const pdfBuffer = doc.output('arraybuffer');
+    return {
+      base64: Buffer.from(pdfBuffer).toString('base64'),
+      contentType: 'application/pdf',
+      filename: `${filename}.pdf`,
+    };
+  }
+  return { base64: '', contentType: '', filename: '' };
 } 
