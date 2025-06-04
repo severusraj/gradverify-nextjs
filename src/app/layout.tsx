@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 		siteName: "GradVerify",
 		type: "website",
 		title: "GradVerify",
+		url: "https://gc-gradverify.space",
 	},
 };
 
