@@ -188,4 +188,31 @@ export async function bulkUpdateStudentProfiles({ studentIds, status, rejectionR
     console.error("Bulk update error:", error);
     return { success: false, message: "Failed to update student profiles" };
   }
+}
+
+export async function updateOwnStudentProfile({ studentId, program, department, dob, pob }: {
+  studentId: string;
+  program: string;
+  department: string;
+  dob: string;
+  pob: string;
+}) {
+  try {
+    const user = await getSessionUser<AuthPayload>();
+    if (!user) {
+      return { success: false, message: "You must be logged in." };
+    }
+    const profile = await prisma.studentProfile.findUnique({ where: { userId: user.id } });
+    if (!profile) {
+      return { success: false, message: "Profile not found." };
+    }
+    await prisma.studentProfile.update({
+      where: { userId: user.id },
+      data: { studentId, program, department, dob, pob },
+    });
+    return { success: true, message: "Profile updated successfully." };
+  } catch (error) {
+    console.error("Update own student profile error:", error);
+    return { success: false, message: "Failed to update profile." };
+  }
 } 

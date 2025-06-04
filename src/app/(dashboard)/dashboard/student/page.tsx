@@ -54,6 +54,11 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
     <div className="min-h-screen w-full flex flex-col bg-white">
       {/* Inbox Card */}
       <div className="w-full max-w-3xl mx-auto mt-8">
+        <div className="mb-4 flex justify-end">
+          <a href="/dashboard/student/profile">
+            <Button variant="outline">Edit Profile</Button>
+          </a>
+        </div>
         <div className="mb-8">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
             <h2 className="text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
