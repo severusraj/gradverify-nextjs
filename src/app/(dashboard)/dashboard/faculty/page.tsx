@@ -275,7 +275,7 @@ export default function FacultyDashboardPage() {
 												</a>
 												{/* Preview if image */}
 												<div className="mt-2">
-													<Image src={psaUrl} alt="PSA Document" width={256} height={256} className="max-h-64 rounded border" />
+													<img src={psaUrl} alt="PSA Document" width={256} height={256} className="max-h-64 rounded border" />
 												</div>
 											</div>
 										)}
@@ -311,7 +311,7 @@ export default function FacultyDashboardPage() {
 												</a>
 												{/* Preview if image */}
 												<div className="mt-2">
-													<Image src={gradPhotoUrl} alt="Graduation Photo" width={256} height={256} className="max-h-64 rounded border" />
+													<img src={gradPhotoUrl} alt="Graduation Photo" width={256} height={256} className="max-h-64 rounded border" />
 												</div>
 											</div>
 										)}

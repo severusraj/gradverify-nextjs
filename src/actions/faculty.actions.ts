@@ -21,9 +21,16 @@ export async function facultyVerifyDocument({ studentId, action, feedback }: {
     if (!currentUser || currentUser.role !== "FACULTY") {
       return { success: false, message: "Unauthorized" };
     }
+    // Check if the student profile exists
+    const profile = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+    });
+    if (!profile) {
+      return { success: false, message: "Student profile not found" };
+    }
     // Update student profile status
     const updatedProfile = await prisma.studentProfile.update({
-      where: { userId: studentId },
+      where: { id: studentId },
       data: {
         psaStatus: action === "approve" ? "APPROVED" : "REJECTED",
         feedback: feedback || null
