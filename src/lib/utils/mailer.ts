@@ -13,7 +13,7 @@ export async function sendVerificationEmail(
 	const verifyUrl = `${baseUrl}/verify?token=${token}`;
 
 	await resend.emails.send({
-		from: "GradVerify <noreply@gc-gradverify.site>",
+		from: "GradVerify <noreply@gc-gradverify.space>",
 		to: email,
 		subject: "Verify Your Email",
 		react: VerifyEmailMessage({ verifyUrl: verifyUrl, name: name! }),
