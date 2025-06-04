@@ -343,7 +343,7 @@ export async function createUserAsSuperAdmin({ name, email, password, role }: { 
 
 		// Send welcome email
 		await resend.emails.send({
-			from: "GradVerify <noreply@gc-gradverify.site>",
+			from: "GradVerify <noreply@gc-gradverify.space>",
 			to: user.email,
 			subject: `Welcome to GradVerify! ${user.name}`,
 			react: LoginInfoMessage({

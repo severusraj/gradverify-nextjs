@@ -51,7 +51,7 @@ export async function createInvitation({ recipients, template, subject, eventDat
     // Send emails
     const emailPromises = invitation.recipients.map((recipient: { name: string; email: string; role: string }) =>
       resend.emails.send({
-        from: "GradVerify <noreply@gc-gradverify.site>",
+        from: "GradVerify <noreply@gc-gradverify.space>",
         to: recipient.email,
         subject,
         html: template
