@@ -3,6 +3,7 @@
 import { prisma } from "@/db/prisma";
 import { z } from "zod";
 import { Resend } from "resend";
+import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -66,20 +67,23 @@ export async function createInvitation({ recipients, template, subject, eventDat
       where: { id: invitation.id },
       data: { status: "SENT" },
     });
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        action: "INVITATION_SENT",
-        userId: "system", // Optionally pass userId
-        targetId: invitation.id,
-        details: {
-          invitationId: invitation.id,
-          recipientCount: recipients.length,
-          eventDate,
-          eventLocation,
+    // Create audit log with real user ID
+    const user = await getSessionUser<AuthPayload>();
+    if (user) {
+      await prisma.auditLog.create({
+        data: {
+          action: "INVITATION_SENT",
+          userId: user.id,
+          targetId: invitation.id,
+          details: {
+            invitationId: invitation.id,
+            recipientCount: recipients.length,
+            eventDate,
+            eventLocation,
+          },
         },
-      },
-    });
+      });
+    }
     return { success: true, invitation };
   } catch (error) {
     console.error("Create invitation error:", error);

@@ -536,7 +536,16 @@ export default function VerificationManagementPage() {
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold">PSA Content</h3>
                   <div className="border rounded-md overflow-hidden">
-                    <img src={psaUrl} alt="PSA Document" className="max-w-full h-auto" />
+                    {psaUrl.toLowerCase().endsWith('.pdf') ? (
+                      <iframe
+                        src={psaUrl}
+                        title="PSA PDF Document"
+                        className="w-full h-96"
+                        frameBorder={0}
+                      />
+                    ) : (
+                      <img src={psaUrl} alt="PSA Document" className="max-w-full h-auto" />
+                    )}
                   </div>
                   <a
                     href={psaUrl}

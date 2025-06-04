@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import { getInvitationRecipients } from "@/actions/superadmin-invitations.actions";
+import { getInvitationRecipients, createInvitation } from "@/actions/superadmin-invitations.actions";
 
 const roles = ["Graduate"];
 const departments = ["All", "CCS", "CBA", "CAHS", "CEAS", "CHTM"];
@@ -126,24 +126,19 @@ export default function InvitationsPage() {
     setConfirmOpen(false);
     if (selected.length === 0) return;
     try {
-      const res = await fetch("/api/superadmin/invitations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients: selected,
-          template: invitation,
-          subject: "Graduation Ceremony Invitation",
-          eventDate: "2024-06-30",
-          eventLocation: "Main Auditorium",
-        }),
+      const res = await createInvitation({
+        recipients: selected,
+        template: invitation,
+        subject: "Graduation Ceremony Invitation",
+        eventDate: "2025-06-09",
+        eventLocation: "Subic Bay Exhibition and Convention Center",
       });
-      const data = await res.json();
-      if (res.ok) {
+      if (res.success) {
         toast.success(`Invitations sent to ${selected.length} recipient(s).`);
         setSelected([]);
         fetchRecipients();
       } else {
-        toast.error(data.error || "Failed to send invitations");
+        toast.error(res.message || "Failed to send invitations");
       }
     } catch {
       toast.error("Failed to send invitations");
