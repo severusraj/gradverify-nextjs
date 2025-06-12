@@ -34,83 +34,52 @@ export function RegisterForm() {
 					registerUser({ success: false, message: "" }, formData).then(setState);
 				});
 			}}
-			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"
+			className="grid gap-4"
 		>
-			<div className="flex flex-col space-y-4">
-				<div className="flex flex-col space-y-2">
-					<h1 className="text-lg font-bold leading-snug text-center">
-						Create Student Account
-					</h1>
-					<p className="text-center text-sm text-muted-foreground">
-						Fill out the form below to create your student account.
-					</p>
-				</div>
-				<div className="flex flex-col space-y-3">
-					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="name">
-							Full Name <span className="text-red-500">*</span>
-						</Label>
-						<Input
-							id="name"
-							name="name"
-							type="text"
-							required
-							className="transition-all h-10"
-						/>
-					</div>
-					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="email">
-							Email <span className="text-red-500">*</span>
-						</Label>
-						<Input
-							id="email"
-							name="email"
-							type="email"
-							required
-							className="transition-all h-10"
-						/>
-					</div>
-					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="password">
-							Password <span className="text-red-500">*</span>
-						</Label>
-						<div className="relative">
-							<Input
-								id="password"
-								name="password"
-								type={showPassword ? "text" : "password"}
-								required
-								className="transition-all h-10 pr-12"
-							/>
-							<button
-								type="button"
-								className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none"
-								onClick={() => setShowPassword((v) => !v)}
-								tabIndex={-1}
-								aria-label={showPassword ? "Hide password" : "Show password"}
-							>
-								{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-							</button>
-						</div>
-					</div>
-					<Button type="submit" className="w-full h-10" disabled={isPending}>
-						{isPending ? (
-							<>
-								<Loader2Icon className="size-4 animate-spin" /> Creating
-								account...
-							</>
-						) : (
-							<>Create Account</>
-						)}
-					</Button>
-					<div className="flex items-center justify-center text-center text-sm gap-1.5">
-						<p>Already have an account?</p>
-						<Link href="/login" className="text-blue-500 underline font-medium">
-							Login Now
-						</Link>
-					</div>
+			<div className="grid gap-2">
+				<Label htmlFor="name">Full Name</Label>
+				<Input id="name" name="name" placeholder="John Doe" required />
+			</div>
+			<div className="grid gap-2">
+				<Label htmlFor="email">Email</Label>
+				<Input
+					id="email"
+					name="email"
+					type="email"
+					placeholder="m@example.com"
+					required
+				/>
+			</div>
+			<div className="grid gap-2">
+				<Label htmlFor="password">Password</Label>
+				<div className="relative">
+					<Input
+						id="password"
+						name="password"
+						type={showPassword ? "text" : "password"}
+						required
+						className="pr-12"
+					/>
+					<button
+						type="button"
+						className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+						onClick={() => setShowPassword((v) => !v)}
+						tabIndex={-1}
+						aria-label={showPassword ? "Hide password" : "Show password"}
+					>
+						{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+					</button>
 				</div>
 			</div>
+			<Button type="submit" className="w-full" disabled={isPending}>
+				{isPending ? (
+					<>
+						<Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> Creating Account...
+					</>
+				) : (
+					"Create an account"
+				)}
+			</Button>
 		</form>
 	);
 }

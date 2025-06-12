@@ -55,73 +55,56 @@ export function LoginForm() {
 					loginUser({ success: false, message: "", role: undefined }, formData).then(setState);
 				});
 			}}
-			className="block p-6 w-full sm:w-96 rounded-md border bg-background shadow-lg"
+			className="grid gap-4"
 		>
-			<div className="flex flex-col space-y-4">
-				<div className="flex flex-col justify-center text-center space-y-1.5">
-					<h1 className="text-lg font-bold leading-snug">
-						Continue with Grad<span className="text-blue-500">Verify</span>
-					</h1>
-					<p className="text-sm text-muted-foreground">
-						Proceed with your created student account.
-					</p>
+			<div className="grid gap-2">
+				<Label htmlFor="email">Email</Label>
+				<Input
+					id="email"
+					name="email"
+					type="email"
+					placeholder="m@example.com"
+					required
+				/>
+			</div>
+			<div className="grid gap-2">
+				<div className="flex items-center">
+					<Label htmlFor="password">Password</Label>
+					<Link
+						href="/forgot-password"
+						className="ml-auto inline-block text-sm underline"
+					>
+						Forgot your password?
+					</Link>
 				</div>
-				<div className="flex flex-col space-y-3">
-					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="email">
-							Email <span className="text-red-500">*</span>
-						</Label>
-						<Input
-							id="email"
-							name="email"
-							type="email"
-							required
-							className="transition-all h-10"
-						/>
-					</div>
-					<div className="flex flex-col space-y-1.5">
-						<Label htmlFor="password">
-							Password <span className="text-red-500">*</span>
-						</Label>
-						<div className="relative">
-							<Input
-								id="password"
-								name="password"
-								type={showPassword ? "text" : "password"}
-								required
-								className="transition-all h-10 pr-12"
-							/>
-							<button
-								type="button"
-								className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none"
-								onClick={() => setShowPassword((v) => !v)}
-								tabIndex={-1}
-								aria-label={showPassword ? "Hide password" : "Show password"}
-							>
-								{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-							</button>
-						</div>
-					</div>
-					<Button type="submit" className="w-full h-10">
-						{isPending ? (
-							<>
-								<Loader2Icon className="size-4 animate-spin" /> Logging in...
-							</>
-						) : (
-							<>Login</>
-						)}
-					</Button>
-					<div className="flex items-center justify-center text-center text-sm gap-1.5">
-						<p>Don&apos;t have an account?</p>
-						<Link
-							href="/register"
-							className="text-blue-500 underline font-medium"
-						>
-							Register Now
-						</Link>
-					</div>
+				<div className="relative">
+					<Input
+						id="password"
+						name="password"
+						type={showPassword ? "text" : "password"}
+						required
+						className="pr-12"
+					/>
+					<button
+						type="button"
+						className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+						onClick={() => setShowPassword((v) => !v)}
+						tabIndex={-1}
+						aria-label={showPassword ? "Hide password" : "Show password"}
+					>
+						{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+					</button>
 				</div>
 			</div>
+			<Button type="submit" className="w-full" disabled={isPending}>
+				{isPending ? (
+					<>
+						<Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> Logging in...
+					</>
+				) : (
+					"Login"
+				)}
+			</Button>
 		</form>
 	);
 }

@@ -4,7 +4,12 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+	subsets: ["latin"],
+	display: 'swap',
+	preload: true,
+	variable: '--font-inter'
+});
 
 export const metadata: Metadata = {
 	title: {
@@ -21,7 +26,7 @@ export const metadata: Metadata = {
 		siteName: "GradVerify",
 		type: "website",
 		title: "GradVerify",
-		url: "https://gc-gradverify.space",
+		url: "https://gradverify-nextjs.vercel.app",
 	},
 };
 
@@ -32,6 +37,9 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
+			<head>
+				{/* Removed unnecessary preload for layout.css */}
+			</head>
 			<body className={inter.className}>
 				<ThemeProvider
 					attribute="class"

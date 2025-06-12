@@ -1,9 +1,10 @@
 "use server";
 
+import { cache } from "react";
 import { prisma } from "@/db/prisma";
 import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
 
-export async function getSuperadminDashboardStats() {
+export const getSuperadminDashboardStats = cache(async () => {
   try {
     const user = await getSessionUser<AuthPayload>();
     if (!user || user.role !== "SUPER_ADMIN") {
@@ -111,4 +112,4 @@ export async function getSuperadminDashboardStats() {
     console.error("Error fetching dashboard stats:", error);
     return { success: false, error: "Failed to fetch dashboard stats" };
   }
-} 
+}); 

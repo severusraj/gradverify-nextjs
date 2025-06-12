@@ -19,6 +19,7 @@ model User {
   lastResendAt       DateTime?
   resendCount        Int                 @default(0)
   lastLoginAt        DateTime?
+  lastForgotPasswordAt DateTime?
   auditLogs          AuditLog[]
   awards             Award[]
   studentProfile     StudentProfile?
@@ -34,6 +35,14 @@ model VerificationToken {
   createdAt DateTime @default(now())
   email     String
   User      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  expires   DateTime
+  createdAt DateTime @default(now())
 }
 
 model StudentProfile {

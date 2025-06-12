@@ -328,6 +328,246 @@ export async function resendVerificationEmail(
 	}
 }
 
+// Forgot Password Server Action
+export async function forgotPassword(
+	_prevState: { success: boolean; message: string },
+	formData: FormData,
+): Promise<{
+	success: boolean;
+	message: string;
+}> {
+	try {
+		const email = formData.get("email") as string;
+
+		if (!email) {
+			return {
+				success: false,
+				message: "Email is required.",
+			};
+		}
+
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return {
+				success: false,
+				message: "Invalid email format.",
+			};
+		}
+
+		const user = await prisma.user.findUnique({
+			where: { email },
+		});
+
+		// Always return success to prevent email enumeration
+		if (!user) {
+			return {
+				success: true,
+				message: "If an account with that email exists, we've sent a password reset link.",
+			};
+		}
+
+		// Rate limiting: 2 minutes cooldown
+		const now = new Date();
+		if (user.lastForgotPasswordAt) {
+			const timeDiff = now.getTime() - user.lastForgotPasswordAt.getTime();
+			const minutesDiff = Math.floor(timeDiff / (1000 * 60));
+			if (minutesDiff < 2) {
+				return {
+					success: false,
+					message: "You must wait at least 2 minutes before requesting another reset.",
+				};
+			}
+		}
+
+		// Delete any existing password reset tokens for this email
+		await prisma.passwordResetToken.deleteMany({
+			where: { email },
+		});
+
+		// Generate new reset token
+		const token = crypto.randomBytes(32).toString("hex");
+		const expires = addMinutes(new Date(), 15); // 15 minutes expiry
+
+		await prisma.passwordResetToken.create({
+			data: {
+				email,
+				token,
+				expires,
+			},
+		});
+
+		// Update lastForgotPasswordAt
+		await prisma.user.update({
+			where: { email },
+			data: { lastForgotPasswordAt: now },
+		});
+
+		// Send password reset email
+		await sendPasswordResetEmail(email, token, user.name);
+
+		return {
+			success: true,
+			message: "If an account with that email exists, we've sent a password reset link.",
+		};
+	} catch (error_) {
+		const error = error_ as Error;
+		console.error("Forgot password error:", error.message, error);
+		return {
+			success: false,
+			message: "Something went wrong. Please try again.",
+		};
+	}
+}
+
+// Reset Password Server Action
+export async function resetPassword(
+	_prevState: { success: boolean; message: string },
+	formData: FormData,
+): Promise<{
+	success: boolean;
+	message: string;
+}> {
+	try {
+		const token = formData.get("token") as string;
+		const password = formData.get("password") as string;
+		const confirmPassword = formData.get("confirmPassword") as string;
+
+		if (!token || !password || !confirmPassword) {
+			return {
+				success: false,
+				message: "All fields are required.",
+			};
+		}
+
+		if (password !== confirmPassword) {
+			return {
+				success: false,
+				message: "Passwords do not match.",
+			};
+		}
+
+		if (password.length < PASSWORD_LENGTH) {
+			return {
+				success: false,
+				message: "Password must be at least 8 characters long.",
+			};
+		}
+
+		// Find valid reset token
+		const resetToken = await prisma.passwordResetToken.findUnique({
+			where: { token },
+		});
+
+		if (!resetToken || resetToken.expires < new Date()) {
+			return {
+				success: false,
+				message: "Invalid or expired reset token.",
+			};
+		}
+
+		// Find user
+		const user = await prisma.user.findUnique({
+			where: { email: resetToken.email },
+		});
+
+		if (!user) {
+			return {
+				success: false,
+				message: "User not found.",
+			};
+		}
+
+		// Hash new password
+		const hashedPassword = await bcrypt.hash(password, 10);
+
+		// Update user password
+		await prisma.user.update({
+			where: { id: user.id },
+			data: { password: hashedPassword },
+		});
+
+		// Delete the used reset token
+		await prisma.passwordResetToken.delete({
+			where: { token },
+		});
+
+		// Delete all other reset tokens for this email
+		await prisma.passwordResetToken.deleteMany({
+			where: { email: resetToken.email },
+		});
+
+		return {
+			success: true,
+			message: "Password reset successful. You can now log in with your new password.",
+		};
+	} catch (error_) {
+		const error = error_ as Error;
+		console.error("Reset password error:", error.message, error);
+		return {
+			success: false,
+			message: "Something went wrong. Please try again.",
+		};
+	}
+}
+
+// Send Password Reset Email
+async function sendPasswordResetEmail(email: string, token: string, name: string) {
+	try {
+		const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+		
+		await resend.emails.send({
+			from: "GradVerify <noreply@gc-gradverify.space>",
+			to: email,
+			subject: "Reset Your Password - GradVerify",
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+					<div style="text-align: center; margin-bottom: 30px;">
+						<h1 style="color: #3b82f6; margin: 0;">GradVerify</h1>
+						<p style="color: #6b7280; margin: 5px 0;">Academic Verification Platform</p>
+					</div>
+					
+					<div style="background: #f8fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
+						<h2 style="color: #1f2937; margin-top: 0;">Reset Your Password</h2>
+						<p style="color: #4b5563; line-height: 1.6;">
+							Hello ${name},
+						</p>
+						<p style="color: #4b5563; line-height: 1.6;">
+							We received a request to reset your password for your GradVerify account. 
+							Click the button below to reset your password:
+						</p>
+						
+						<div style="text-align: center; margin: 30px 0;">
+							<a href="${resetUrl}" 
+							   style="background: #3b82f6; color: white; padding: 12px 30px; 
+							          text-decoration: none; border-radius: 6px; display: inline-block;
+							          font-weight: 500;">
+								Reset Password
+							</a>
+						</div>
+						
+						<p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+							This link will expire in 15 minutes for security reasons.
+						</p>
+						
+						<p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+							If you didn't request this password reset, please ignore this email. 
+							Your password will remain unchanged.
+						</p>
+					</div>
+					
+					<div style="text-align: center; color: #9ca3af; font-size: 12px;">
+						<p>© 2024 GradVerify. All rights reserved.</p>
+						<p>Gordon College - Computer and Information Sciences</p>
+					</div>
+				</div>
+			`,
+		});
+	} catch (error) {
+		console.error("Failed to send password reset email:", error);
+		throw error;
+	}
+}
+
 export async function createUserAsSuperAdmin({ name, email, password, role }: { name: string; email: string; password: string; role: string }) {
 	try {
 		// Check if the current user is a super admin
