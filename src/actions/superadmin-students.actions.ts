@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
 export async function getSuperadminStudents({ page = 1, limit = 10, overallStatus, search, hasAwards }: {
   page?: number;
@@ -41,6 +42,23 @@ export async function getSuperadminStudents({ page = 1, limit = 10, overallStatu
       take: limit,
       orderBy: { createdAt: "desc" },
     });
+
+    // Map each student to include a temporary signed URL for the grad photo (valid for 1 hour)
+    const studentsWithPhotoUrl = await Promise.all(
+      students.map(async (s: any) => {
+        let gradPhotoUrl: string | null = null;
+        if (s.gradPhotoS3Key) {
+          try {
+            gradPhotoUrl = await getSignedDownloadUrl(s.gradPhotoS3Key);
+          } catch (err) {
+            console.error("Failed to generate signed URL for", s.gradPhotoS3Key, err);
+          }
+        }
+        return { ...s, gradPhotoUrl };
+      })
+    );
+    students = studentsWithPhotoUrl;
+
     return {
       success: true,
       students,

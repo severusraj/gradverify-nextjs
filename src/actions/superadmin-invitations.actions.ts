@@ -4,6 +4,7 @@ import { prisma } from "@/db/prisma";
 import { z } from "zod";
 import { Resend } from "resend";
 import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
+import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -50,17 +51,31 @@ export async function createInvitation({ recipients, template, subject, eventDat
       },
     });
     // Send emails
-    const emailPromises = invitation.recipients.map((recipient: { name: string; email: string; role: string }) =>
-      resend.emails.send({
+    const emailPromises = invitation.recipients.map(async (recipient: { name: string; email: string; role: string }) => {
+      let gradPhotoUrl = "";
+      if (recipient.role === "STUDENT") {
+        // Fetch the student's grad photo from their studentProfile
+        const student = await prisma.studentProfile.findFirst({
+          where: { user: { email: recipient.email } },
+          select: { gradPhotoS3Key: true },
+        });
+        if (student?.gradPhotoS3Key) {
+          // Assume you have a function to get a signed URL, or use a public URL pattern
+          gradPhotoUrl = `https://your-s3-bucket-url/${student.gradPhotoS3Key}`;
+        }
+      }
+      let html = template
+        .replace(/{{name}}/g, recipient.name)
+        .replace(/{{eventDate}}/g, eventDate)
+        .replace(/{{eventLocation}}/g, eventLocation)
+        .replace(/{{gradPhoto}}/g, gradPhotoUrl);
+      return resend.emails.send({
         from: "GradVerify <noreply@gc-gradverify.space>",
         to: recipient.email,
         subject,
-        html: template
-          .replace("{{name}}", recipient.name)
-          .replace("{{eventDate}}", eventDate)
-          .replace("{{eventLocation}}", eventLocation),
-      })
-    );
+        html,
+      });
+    });
     await Promise.all(emailPromises);
     // Update invitation status
     await prisma.invitation.update({
@@ -147,6 +162,7 @@ export async function getInvitationRecipients({
         studentProfile: {
           select: {
             department: true,
+            gradPhotoS3Key: true,
           },
         },
       },
@@ -155,12 +171,23 @@ export async function getInvitationRecipients({
       take: limit,
     });
     // Map to frontend format
-    const recipients = users.map((u: { id: string; name: string; email: string; role: string; studentProfile?: { department?: string } | null }) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: "Graduating Student",
-      department: u.studentProfile?.department || "",
+    const recipients = await Promise.all(users.map(async (u: { id: string; name: string; email: string; role: string; studentProfile?: { department?: string; gradPhotoS3Key?: string } | null }) => {
+      let gradPhotoUrl: string | undefined = undefined;
+      if (u.studentProfile?.gradPhotoS3Key) {
+        try {
+          gradPhotoUrl = await getSignedDownloadUrl(u.studentProfile.gradPhotoS3Key);
+        } catch (err) {
+          console.error("Failed to sign grad photo url", err);
+        }
+      }
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: "Graduating Student",
+        department: u.studentProfile?.department || "",
+        gradPhotoUrl,
+      };
     }));
     return {
       success: true,
