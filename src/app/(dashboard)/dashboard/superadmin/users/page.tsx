@@ -29,14 +29,17 @@ export default function UserManagementPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto p-8 space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 pb-4 border-b">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground text-lg mt-1">Manage administrators and faculty members.</p>
+          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+          <p className="text-gray-400 mt-1">Manage administrators and faculty members.</p>
         </div>
-        <Button onClick={() => setIsCreateUserOpen(true)} size="lg" className="bg-primary text-white shadow-md hover:bg-primary/90">
+        <Button 
+          onClick={() => setIsCreateUserOpen(true)} 
+          className="bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+        >
           <UserPlus className="w-5 h-5 mr-2" />
           Create User
         </Button>
