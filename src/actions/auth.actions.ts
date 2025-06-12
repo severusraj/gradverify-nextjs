@@ -272,6 +272,21 @@ export async function resendVerificationEmail(
 			};
 		}
 
+		// Rate limiting
+		const now = new Date();
+		if (user.lastResendAt) {
+			const timeDiff = now.getTime() - user.lastResendAt.getTime();
+			const minutesDiff = Math.floor(timeDiff / (1000 * 60));
+
+			if (minutesDiff < 2) {
+				// 2 minutes cooldown
+				return {
+					success: false,
+					message: "You must wait at least 2 minutes before resending.",
+				};
+			}
+		}
+
 		const token = crypto.randomBytes(32).toString("hex");
 		const expires = addMinutes(new Date(), 30);
 
@@ -284,6 +299,16 @@ export async function resendVerificationEmail(
 				email,
 				token,
 				expires,
+			},
+		});
+
+		await prisma.user.update({
+			where: { email },
+			data: {
+				lastResendAt: now,
+				resendCount: {
+					increment: 1,
+				},
 			},
 		});
 
