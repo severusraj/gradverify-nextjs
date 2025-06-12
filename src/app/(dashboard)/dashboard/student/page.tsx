@@ -254,11 +254,7 @@ function DashboardContent({
 	);
 }
 
-export default async function StudentDashboard({
-	searchParams,
-}: {
-	searchParams: { [key: string]: string | string[] | undefined };
-}) {
+export default async function StudentDashboard({ searchParams }: any) {
 	const user = (await getSessionUser()) as User | null;
 
 	if (!user) {
