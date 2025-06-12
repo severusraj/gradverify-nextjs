@@ -1,19 +1,18 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
-const manrope = Manrope({
-	variable: "--font-manrope",
-	subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
 	title: {
 		default: "GradVerify",
 		template: "%s | GradVerify",
 	},
-	description: "GradVerify for students of Gordon College",
+	description:
+		"GradVerify is a secure and efficient platform for alumni to request and verify their academic documents.",
 	appleWebApp: {
 		title: "GradVerify",
 	},
@@ -32,12 +31,17 @@ export default function RootLayout({
 	readonly children: React.ReactNode;
 }) {
 	return (
-		<html lang="en">
-			<body
-				className={`${manrope.className} bg-background text-foreground antialiased`}
-			>
-				<div>{children}</div>
-				<Toaster position="top-center" />
+		<html lang="en" suppressHydrationWarning>
+			<body className={inter.className}>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="dark"
+					enableSystem
+					disableTransitionOnChange
+				>
+					{children}
+					<Toaster richColors />
+				</ThemeProvider>
 			</body>
 		</html>
 	);

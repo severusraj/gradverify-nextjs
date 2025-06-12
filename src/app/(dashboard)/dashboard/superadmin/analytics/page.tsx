@@ -55,6 +55,11 @@ const departmentPrograms: Record<string, string[]> = {
   ]
 };
 
+const getAcronym = (name: string) => {
+  const match = name.match(/\(([^)]+)\)/);
+  return match ? match[1] : name;
+};
+
 export default function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("30days");
   const [data, setData] = useState<any>(null);
@@ -98,16 +103,16 @@ export default function AnalyticsDashboard() {
   const filteredProcessingTimes = processingTimes.filter((pt: any) => filteredPrograms.includes(pt.program));
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <p className="text-gray-400 mt-1">
             Comprehensive insights into verification processes and trends
           </p>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full md:w-[180px] bg-gray-800 border-gray-600">
             <SelectValue placeholder="Select time range" />
           </SelectTrigger>
           <SelectContent>
@@ -119,41 +124,41 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-400">Total Submissions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Number(totalSubmissions)}</div>
-            <p className="text-xs text-muted-foreground">Total verification requests</p>
+            <div className="text-3xl font-bold">{Number(totalSubmissions)}</div>
+            <p className="text-xs text-gray-500">Total verification requests</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-400">Approval Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{approvalRate}%</div>
-            <p className="text-xs text-muted-foreground">% of requests approved</p>
+            <div className="text-3xl font-bold">{approvalRate}%</div>
+            <p className="text-xs text-gray-500">% of requests approved</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Processing Time</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-400">Avg. Processing Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgProcessingTime} days</div>
-            <p className="text-xs text-muted-foreground">Across all document types</p>
+            <div className="text-3xl font-bold">{avgProcessingTime} days</div>
+            <p className="text-xs text-gray-500">Across all document types</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Verifiers</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-400">Active Verifiers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeVerifiers}</div>
-            <p className="text-xs text-muted-foreground">Admins/faculty in last 30 days</p>
+            <div className="text-3xl font-bold">{activeVerifiers}</div>
+            <p className="text-xs text-gray-500">Admins/faculty in last 30 days</p>
           </CardContent>
         </Card>
       </div>
@@ -161,7 +166,7 @@ export default function AnalyticsDashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Verification Trends */}
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
             <CardTitle>Verification Trends</CardTitle>
           </CardHeader>
@@ -184,7 +189,7 @@ export default function AnalyticsDashboard() {
         </Card>
 
         {/* Department Distribution */}
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
             <CardTitle>Department Distribution</CardTitle>
           </CardHeader>
@@ -197,8 +202,8 @@ export default function AnalyticsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={100}
+                    label={({ name, percent }) => `${getAcronym(name)} (${(percent * 100).toFixed(0)}%)`}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -206,7 +211,12 @@ export default function AnalyticsDashboard() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1f2937",
+                      borderColor: "#4b5563",
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -214,7 +224,7 @@ export default function AnalyticsDashboard() {
         </Card>
 
         {/* Document Types */}
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
             <CardTitle>Document Types Distribution</CardTitle>
           </CardHeader>
@@ -235,12 +245,12 @@ export default function AnalyticsDashboard() {
         </Card>
 
         {/* Processing Time Analysis */}
-        <Card>
+        <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
             <CardTitle>Processing Time Analysis</CardTitle>
             <div className="mt-2">
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-[320px]">
+                <SelectTrigger className="w-full md:w-[320px] bg-gray-800 border-gray-600">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
