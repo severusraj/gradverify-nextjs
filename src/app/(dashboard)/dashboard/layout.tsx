@@ -109,8 +109,8 @@ export default function DashboardLayout({
 				{isPageLoading && <LoadingBar />}
 				<header className="sticky top-0 z-30 flex h-14 items-center justify-end border-b border-gray-700 bg-gray-900 px-4">
 					<div className="flex items-center gap-4">
-						<UserMenu user={user} />
-					</div>
+					<UserMenu user={user} />
+				</div>
 				</header>
 
 				<main className="flex-1 p-4 sm:p-6 lg:p-8">
