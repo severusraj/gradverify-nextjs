@@ -169,7 +169,7 @@ export default function StudentMultiStepSubmissionForm() {
                   ? "bg-blue-600 text-white border-blue-600"
                   : currentStep > idx + 1
                   ? "bg-blue-100 text-blue-600 border-blue-600"
-                  : "bg-white text-gray-400 border-gray-300"
+                  : "bg-slate-700 text-slate-400 border-slate-600"
               }`}
             >
               {idx + 1}
@@ -177,86 +177,86 @@ export default function StudentMultiStepSubmissionForm() {
             <span
               className={`mt-2 text-xs font-medium text-center ${
                 currentStep === idx + 1
-                  ? "text-blue-600"
-                  : "text-gray-400"
+                  ? "text-blue-400"
+                  : "text-slate-400"
               }`}
             >
               {step}
             </span>
             {idx < steps.length - 1 && (
-              <div className="absolute top-5 right-0 w-full h-0.5 bg-gray-200 z-0" style={{ left: '50%', width: '100%' }} />
+              <div className="absolute top-5 right-0 w-full h-0.5 bg-slate-600 z-0" style={{ left: '50%', width: '100%' }} />
             )}
           </div>
         ))}
       </div>
 
       {/* Card */}
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-slate-900/90 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-2xl p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {currentStep === 1 && (
             <>
-              <h2 className="text-xl font-bold mb-2">Create Your Student Profile</h2>
-              <p className="text-gray-500 mb-6">Please provide your student information to get started with document verification</p>
+              <h2 className="text-xl font-bold mb-2 text-white">Create Your Student Profile</h2>
+              <p className="text-slate-300 mb-6">Please provide your student information to get started with document verification</p>
               <div>
-                <label className="block text-sm font-semibold mb-1">Student ID</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Student ID</label>
                 <input
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                  className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-6 placeholder-slate-400"
                   placeholder="e.g., 202000123"
                   name="studentId"
                   value={formData.studentId}
                   onChange={handleInputChange}
                   required
                 />
-                <p className="text-xs text-gray-400 mt-1">Enter your official student ID number</p>
+                <p className="text-xs text-slate-400 mt-1">Enter your official student ID number</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Department</label>
+                  <label className="block text-sm font-semibold mb-1 text-slate-200">Department</label>
                   <select
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                    className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-6"
                     name="department"
                     value={selectedDepartment}
                     onChange={handleDepartmentChange}
                     required
                   >
-                    <option value="">Select department</option>
+                    <option value="" className="bg-slate-800 text-slate-300">Select department</option>
                     {departments.map((dept) => (
-                      <option key={dept.name} value={dept.name}>
+                      <option key={dept.name} value={dept.name} className="bg-slate-800 text-white">
                         {dept.name}
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-400 mt-1">Your academic department</p>
+                  <p className="text-xs text-slate-400 mt-1">Your academic department</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Program</label>
+                  <label className="block text-sm font-semibold mb-1 text-slate-200">Program</label>
                   <select
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                    className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
                     name="program"
                     value={formData.program}
                     onChange={handleInputChange}
                     required
                     disabled={!selectedDepartment}
                   >
-                    <option value="">{selectedDepartment ? "Select program" : "Select department first"}</option>
+                    <option value="" className="bg-slate-800 text-slate-300">{selectedDepartment ? "Select program" : "Select department first"}</option>
                     {programOptions.map((prog) => (
-                      <option key={prog} value={prog}>
+                      <option key={prog} value={prog} className="bg-slate-800 text-white">
                         {prog}
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-400 mt-1">Your degree program</p>
+                  <p className="text-xs text-slate-400 mt-1">Your degree program</p>
                 </div>
               </div>
               <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">Date of Birth</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Date of Birth</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
                       type="button"
                       className={cn(
-                        "w-full flex items-center justify-between border border-gray-200 rounded-lg px-4 py-2 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-600 transition",
-                        !formData.dob && "text-gray-400"
+                        "w-full flex items-center justify-between border border-slate-600 bg-slate-800/50 rounded-lg px-4 py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition",
+                        !formData.dob ? "text-slate-400" : "text-white"
                       )}
                     >
                       {formData.dob
@@ -265,7 +265,7 @@ export default function StudentMultiStepSubmissionForm() {
                       <CalendarIcon className="h-4 w-4 opacity-50" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
+                  <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start" sideOffset={8}>
                     <div className="p-2">
                       <Calendar
                         mode="single"
@@ -288,39 +288,42 @@ export default function StudentMultiStepSubmissionForm() {
                         className="w-72"
                         captionLayout="dropdown"
                         classNames={{
-                          caption: "flex justify-center pt-1 relative items-center",
+                          caption: "flex justify-center pt-1 relative items-center text-white",
                           caption_dropdowns: "flex gap-2",
                           caption_label: "hidden",
                           vhidden: "hidden",
                           nav: "space-x-1 flex items-center",
-                          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-white hover:bg-slate-700",
                           nav_button_previous: "absolute left-1",
                           nav_button_next: "absolute right-1",
                           table: "w-full border-collapse space-y-1",
                           head_row: "flex",
-                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                          head_cell: "text-slate-400 rounded-md w-9 font-normal text-[0.8rem]",
                           row: "flex w-full mt-2",
-                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-9 w-9",
-                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:outline-none rounded-md",
-                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                          day_today: "bg-accent text-accent-foreground",
-                          day_outside: "text-muted-foreground opacity-50",
-                          day_disabled: "text-muted-foreground opacity-50",
-                          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                          day_hidden: "invisible"
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-blue-600/20 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-9 w-9",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-700 hover:text-white focus:outline-none rounded-md text-white",
+                          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
+                          day_today: "bg-slate-700 text-white",
+                          day_outside: "text-slate-500 opacity-50",
+                          day_disabled: "text-slate-500 opacity-50",
+                          day_range_middle: "aria-selected:bg-blue-600/20 aria-selected:text-white",
+                          day_hidden: "invisible",
+                          dropdown: "bg-slate-800 border-slate-600 text-white rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+                          dropdown_month: "bg-slate-800 border-slate-600 text-white",
+                          dropdown_year: "bg-slate-800 border-slate-600 text-white"
                         }}
                       />
                     </div>
                   </PopoverContent>
                 </Popover>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   As shown on your PSA certificate. You must be at least 15 years old.
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-1">Place of Birth</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Place of Birth</label>
                 <input
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-6"
+                  className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-6 placeholder-slate-400"
                   placeholder="e.g., Olongapo City, Philippines"
                   name="pob"
                   value={formData.pob}
@@ -333,16 +336,16 @@ export default function StudentMultiStepSubmissionForm() {
 
           {currentStep === 2 && (
             <>
-              <h2 className="text-xl font-bold mb-2">Upload PSA Certificate</h2>
-              <p className="text-gray-500 mb-6">Upload a clear scan or photo of your PSA birth certificate.</p>
+              <h2 className="text-xl font-bold mb-2 text-white">Upload PSA Certificate</h2>
+              <p className="text-slate-300 mb-6">Upload a clear scan or photo of your PSA birth certificate.</p>
               <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">Upload PSA Certificate</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Upload PSA Certificate</label>
                 {formData.psaFile ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 text-xs font-medium">File selected: {formData.psaFile.name}</span>
+                  <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                    <span className="text-green-400 text-xs font-medium">File selected: {formData.psaFile.name}</span>
                     <button
                       type="button"
-                      className="text-blue-600 text-xs underline"
+                      className="text-blue-400 text-xs underline hover:text-blue-300 transition-colors"
                       onClick={() => setFormData(prev => ({ ...prev, psaFile: null }))}
                     >
                       Change file
@@ -354,11 +357,11 @@ export default function StudentMultiStepSubmissionForm() {
                     accept=".jpg,.jpeg,.png,.pdf"
                     name="psaFile"
                     onChange={handleInputChange}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     required
                   />
                 )}
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Accepted formats: JPEG, PNG, PDF (max 5MB). Your file will be uploaded when you submit the form.
                 </p>
               </div>
@@ -367,16 +370,16 @@ export default function StudentMultiStepSubmissionForm() {
 
           {currentStep === 3 && (
             <>
-              <h2 className="text-xl font-bold mb-2">Upload Graduation Photo</h2>
-              <p className="text-gray-500 mb-6">Upload your official graduation photo.</p>
+              <h2 className="text-xl font-bold mb-2 text-white">Upload Graduation Photo</h2>
+              <p className="text-slate-300 mb-6">Upload your official graduation photo.</p>
               <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">Upload Graduation Photo</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Upload Graduation Photo</label>
                 {formData.gradPhoto ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 text-xs font-medium">File selected: {formData.gradPhoto.name}</span>
+                  <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                    <span className="text-green-400 text-xs font-medium">File selected: {formData.gradPhoto.name}</span>
                     <button
                       type="button"
-                      className="text-blue-600 text-xs underline"
+                      className="text-blue-400 text-xs underline hover:text-blue-300 transition-colors"
                       onClick={() => setFormData(prev => ({ ...prev, gradPhoto: null }))}
                     >
                       Change file
@@ -388,11 +391,11 @@ export default function StudentMultiStepSubmissionForm() {
                     accept=".jpg,.jpeg,.png"
                     name="gradPhoto"
                     onChange={handleInputChange}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     required
                   />
                 )}
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Accepted formats: JPEG, PNG (max 5MB). Your file will be uploaded when you submit the form.
                 </p>
               </div>
@@ -401,16 +404,16 @@ export default function StudentMultiStepSubmissionForm() {
 
           {currentStep === 4 && (
             <>
-              <h2 className="text-xl font-bold mb-2">Upload Academic Awards</h2>
-              <p className="text-gray-500 mb-6">Upload any academic award certificates (optional).</p>
+              <h2 className="text-xl font-bold mb-2 text-white">Upload Academic Awards</h2>
+              <p className="text-slate-300 mb-6">Upload any academic award certificates (optional).</p>
               <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">Upload Academic Awards <span className="text-gray-400 font-normal">(optional)</span></label>
+                <label className="block text-sm font-semibold mb-1 text-slate-200">Upload Academic Awards <span className="text-slate-400 font-normal">(optional)</span></label>
                 {formData.awards ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 text-xs font-medium">File selected: {formData.awards.name}</span>
+                  <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                    <span className="text-green-400 text-xs font-medium">File selected: {formData.awards.name}</span>
                     <button
                       type="button"
-                      className="text-blue-600 text-xs underline"
+                      className="text-blue-400 text-xs underline hover:text-blue-300 transition-colors"
                       onClick={() => setFormData(prev => ({ ...prev, awards: null }))}
                     >
                       Change file
@@ -422,11 +425,11 @@ export default function StudentMultiStepSubmissionForm() {
                     accept=".jpg,.jpeg,.png,.pdf"
                     name="awards"
                     onChange={handleInputChange}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition mb-2"
+                    className="w-full border border-slate-600 bg-slate-800/50 text-white rounded-lg px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     autoFocus={false}
                   />
                 )}
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Accepted formats: JPEG, PNG, PDF (max 5MB). If you don&apos;t have any awards, you can leave this blank.
                 </p>
               </div>
@@ -436,7 +439,7 @@ export default function StudentMultiStepSubmissionForm() {
           {currentStep === steps.length && (
             <Button
               type="submit"
-              className="mt-8 w-full bg-primary text-primary-foreground shadow-lg rounded-lg text-lg font-semibold py-3 transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="mt-8 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg rounded-lg text-lg font-semibold py-3 transition-all focus-visible:ring-2 focus-visible:ring-blue-500/50"
               disabled={isSubmitting}
             >
               {isSubmitting ? <Loader2Icon className="size-5 animate-spin mr-2" /> : null} Submit
@@ -450,12 +453,16 @@ export default function StudentMultiStepSubmissionForm() {
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex-1"
+            className="flex-1 border-slate-600 bg-slate-800/50 text-slate-200 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </Button>
           {currentStep < steps.length && (
-            <Button type="button" onClick={nextStep} className="flex-1">
+            <Button 
+              type="button" 
+              onClick={nextStep} 
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+            >
               Next
             </Button>
           )}

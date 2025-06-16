@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,8 @@ export default function FacultyVerificationPage() {
   const [psaLoading, setPsaLoading] = useState(false);
   const [gradPhotoUrl, setGradPhotoUrl] = useState<string | null>(null);
   const [gradPhotoLoading, setGradPhotoLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const fetchStudents = useCallback(async () => {
     try {
@@ -156,10 +158,14 @@ export default function FacultyVerificationPage() {
     }
   };
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.studentId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudents = useMemo(() => {
+    const query = deferredSearchQuery.toLowerCase();
+    if (!query) return students;
+    return students.filter((student) =>
+      student.name.toLowerCase().includes(query) ||
+      student.studentId.toLowerCase().includes(query)
+    );
+  }, [students, deferredSearchQuery]);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -179,7 +185,7 @@ export default function FacultyVerificationPage() {
                 className="w-full"
               />
             </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={departmentFilter} onValueChange={(value) => startTransition(() => setDepartmentFilter(value))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
@@ -189,7 +195,7 @@ export default function FacultyVerificationPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(value) => startTransition(() => setStatusFilter(value))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -261,7 +267,7 @@ export default function FacultyVerificationPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-green-600 hover:bg-green-50"
+                                className="text-green-400 border-green-500/30 hover:bg-green-500/20 hover:text-green-300"
                                 onClick={() => handleVerification(student.id, "approve")}
                                 disabled={isVerifying}
                               >
@@ -270,7 +276,7 @@ export default function FacultyVerificationPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-red-600 hover:bg-red-50"
+                                className="text-red-400 border-red-500/30 hover:bg-red-500/20 hover:text-red-300"
                                 onClick={() => handleVerification(student.id, "reject")}
                                 disabled={isVerifying}
                               >
@@ -438,7 +444,7 @@ export default function FacultyVerificationPage() {
                   <>
                     <Button
                       variant="default"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 border-green-500"
                       onClick={() => handleVerification(selectedStudent.id, "approve")}
                       disabled={isVerifying}
                     >
@@ -453,6 +459,7 @@ export default function FacultyVerificationPage() {
                     </Button>
                     <Button
                       variant="destructive"
+                      className="bg-red-600 hover:bg-red-700 border-red-500"
                       onClick={() => handleVerification(selectedStudent.id, "reject")}
                       disabled={isVerifying}
                     >

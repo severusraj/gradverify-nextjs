@@ -53,6 +53,7 @@ import { getSuperadminStudents } from "@/actions/superadmin-students.actions";
 import { convertImageToBase64 } from "@/actions/convert-image.actions";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import MarkdownIt from "markdown-it";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 const MarkdownPreview = dynamic(() => import("@uiw/react-markdown-preview"), { ssr: false });
@@ -176,7 +177,7 @@ const InvitationCard = ({ recipient }: { recipient: Student | Recipient }) => (
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-3">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-blue-700 dark:text-blue-300">June 9, 2025</span>
+            <span className="font-semibold text-blue-700 dark:text-blue-300">July 9, 2025</span>
           </div>
           <div className="flex items-center justify-center gap-3">
             <Clock className="w-5 h-5 text-blue-600" />
@@ -212,6 +213,26 @@ const InvitationCard = ({ recipient }: { recipient: Student | Recipient }) => (
 
     {/* Decorative bottom border */}
     <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
+  </div>
+);
+
+// Styled wrapper that mimics the dark invitation card shell used in the exported PDF
+const StyledCard = ({ children }: { children: React.ReactNode }) => (
+  <div
+    className="relative rounded-lg overflow-hidden shadow-xl"
+    style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }}
+  >
+    {/* top gradient bars */}
+    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600" />
+    <div className="absolute top-2 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400" />
+
+    {/* content */}
+    <div className="relative z-10 bg-[#0f172a] p-6 sm:p-10 text-white">
+      {children}
+    </div>
+
+    {/* bottom gradient bar */}
+    <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600" />
   </div>
 );
 
@@ -251,6 +272,9 @@ function replaceVars(template: string, recipient: Student | Recipient) {
   return result;
 }
 
+// Shared class list for consistent markdown styling across live preview, dialogs, and PDF export
+const MARKDOWN_PREVIEW_CLASSES = "prose prose-lg max-w-none dark:prose-invert prose-headings:text-blue-800 dark:prose-headings:text-blue-300 prose-headings:font-bold prose-headings:mb-4 prose-headings:mt-6 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-strong:font-semibold prose-links:text-blue-600 dark:prose-links:text-blue-400 prose-links:underline prose-ul:text-gray-700 dark:prose-ul:text-gray-300 prose-li:my-1 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:rounded-full prose-img:mx-auto prose-img:border-4 prose-img:border-blue-200 prose-img:shadow-lg prose-img:mb-6 prose-img:mt-6 prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:p-4 prose-blockquote:rounded-r prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm";
+
 export default function InvitationsPage() {
   // State for general invitations
   const [roleFilter, setRoleFilter] = useState("Graduate");
@@ -281,7 +305,7 @@ Dear {{name}},
 We are delighted to invite you to the **Gordon College Graduation Ceremony**.
 
 **Event Details:**
-- 📅 **Date:** June 9, 2025
+- 📅 **Date:** July 9, 2025
 - 📍 **Location:** Subic Bay Exhibition and Convention Center
 - ⏰ **Time:** 10:00 AM
 
@@ -306,6 +330,7 @@ Best regards,
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [detailsRecipient, setDetailsRecipient] = useState<Recipient | null>(null);
   const [previewAllOpen, setPreviewAllOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"rendered" | "raw">("rendered");
 
   // Effects
   useEffect(() => {
@@ -456,7 +481,7 @@ Best regards,
         toast.success(
           `🎉 Successfully sent ${currentSelected.length} graduation invitation${currentSelected.length > 1 ? 's' : ''}!`,
           {
-            description: `Recipients will receive personalized invitations for the June 9, 2025 ceremony.`,
+            description: `Recipients will receive personalized invitations for the July 9, 2025 ceremony.`,
             duration: 5000,
           }
         );
@@ -563,6 +588,9 @@ Best regards,
         format: 'a4'
       });
 
+      // Markdown parser for converting template into HTML
+      const mdParser = new MarkdownIt({ html: true, linkify: true, breaks: true });
+
       let isFirstPage = true;
       let processedCount = 0;
 
@@ -594,147 +622,57 @@ Best regards,
           }
         }
 
-        // Create a temporary div for rendering the invitation
+        // Create a temporary div for rendering the invitation using markdown (same as live preview)
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
-        tempDiv.style.width = '210mm';
-        tempDiv.style.padding = '20mm';
+        tempDiv.style.top = '0';
+        tempDiv.style.width = '190mm';
+        tempDiv.style.padding = '10mm';
         tempDiv.style.backgroundColor = 'white';
-        tempDiv.style.fontFamily = 'Arial, sans-serif';
-        
-        // Create the invitation HTML content with dark mode support
-        tempDiv.innerHTML = `
-          <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 12px; padding: 4px; min-height: 250mm;">
-            <div style="background: #0f172a; border-radius: 8px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 40px; height: 100%; position: relative; overflow: hidden; color: #f8fafc;">
-              <!-- Decorative elements -->
-              <div style="position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%);"></div>
-              <div style="position: absolute; top: 8px; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);"></div>
-              
-              <!-- Header -->
-                              <div style="text-align: center; margin-bottom: 30px;">
-                  <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
-                    <span style="font-size: 32px; font-weight: bold; color: white;">🎓</span>
-                  </div>
-                  <h1 style="font-size: 32px; font-weight: bold; color: #f8fafc; margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    GRADUATION INVITATION
-                  </h1>
-                  <div style="width: 96px; height: 4px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%); margin: 0 auto; border-radius: 2px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);"></div>
-                </div>
 
-              <!-- Main Content -->
-              <div style="space-y: 30px;">
-                <!-- Greeting -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <p style="font-size: 20px; color: #cbd5e1; margin: 0 0 10px 0;">Dear</p>
-                  <h2 style="font-size: 36px; font-weight: bold; color: #60a5fa; margin: 0 0 20px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    ${recipient.name}
-                  </h2>
-                  <p style="font-size: 24px; color: #e2e8f0; font-weight: 500; margin: 0;">
-                    🎉 Congratulations on your graduation! 🎉
-                  </p>
-                </div>
+        // Embed grad photo directly into markdown before parsing so html2canvas always sees a data-url image
+        const markdownWithPhoto = editorValue.replace(/\{\{gradPhoto\}\}/g, imageBase64 || "");
 
-                ${(('gradPhoto' in recipient && (recipient as Student).gradPhoto) || 
-                  ('gradPhotoUrl' in recipient && (recipient as Recipient).gradPhotoUrl)) ? `
-                <!-- Graduation Photo -->
-                <div style="text-align: center; margin: 30px 0;">
-                  <div style="position: relative; display: inline-block;">
-                    <div style="width: 128px; height: 128px; border-radius: 50%; overflow: hidden; border: 4px solid #60a5fa; box-shadow: 0 10px 25px rgba(96, 165, 250, 0.3); background: #374151; display: flex; align-items: center; justify-content: center;">
-                      ${imageBase64 ? `
-                        <img src="${imageBase64}" 
-                             alt="Graduation Photo" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: center;" />
-                      ` : `
-                        <div style="font-size: 48px; color: #9ca3af;">👤</div>
-                      `}
-                    </div>
-                    <div style="position: absolute; bottom: -8px; right: -8px; width: 32px; height: 32px; background: #fbbf24; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                      <span style="font-size: 14px;">🏆</span>
-                    </div>
-                  </div>
-                </div>
-                ` : ''}
+        // Fill other variables (name, email, etc.)
+        const filledMarkdown = replaceVars(markdownWithPhoto, recipient);
 
-                ${recipient.award ? `
-                <!-- Award Recognition -->
-                <div style="text-align: center; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 12px; padding: 20px; border: 1px solid #f59e0b; margin: 30px 0; box-shadow: 0 8px 25px rgba(251, 191, 36, 0.2);">
-                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                    <span style="color: #92400e;">🏆</span>
-                    <span style="font-weight: 600; color: #92400e; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Special Recognition</span>
-                  </div>
-                  <p style="font-size: 20px; font-weight: bold; color: #78350f; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                    ${recipient.award}
-                  </p>
-                </div>
-                ` : ''}
-
-                <!-- Event Details -->
-                <div style="background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%); border-radius: 12px; padding: 30px; border: 1px solid #60a5fa; margin: 30px 0; box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);">
-                  <h3 style="font-size: 24px; font-weight: bold; text-align: center; color: #f8fafc; margin: 0 0 20px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    🎓 GRADUATION CEREMONY 🎓
-                  </h3>
-                  <div style="space-y: 15px;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px;">
-                      <span style="color: #fbbf24;">📅</span>
-                      <span style="font-weight: 600; color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">June 9, 2025</span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px;">
-                      <span style="color: #fbbf24;">⏰</span>
-                      <span style="font-weight: 600; color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">10:00 AM</span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                      <span style="color: #fbbf24;">📍</span>
-                      <span style="font-weight: 600; color: #f8fafc; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-                        Subic Bay Exhibition and Convention Center
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Program Info -->
-                <div style="text-align: center; margin: 30px 0;">
-                  <p style="color: #94a3b8; margin: 0 0 5px 0;">Program:</p>
-                  <p style="font-weight: 600; color: #e2e8f0; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-                    ${'program' in recipient ? recipient.program : recipient.department}
-                  </p>
-                </div>
-
-                <!-- Closing -->
-                <div style="text-align: center; padding-top: 20px; border-top: 1px solid #475569; margin-top: 30px;">
-                  <p style="color: #cbd5e1; margin: 0 0 10px 0;">
-                    We look forward to celebrating this momentous achievement with you!
-                  </p>
-                  <p style="font-weight: bold; color: #60a5fa; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    Gordon College Administration
-                  </p>
-                </div>
-              </div>
-
-              <!-- Decorative bottom border -->
-              <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%);"></div>
-            </div>
-          </div>
-        `;
+        // Parse to HTML and wrap in card shell
+        const renderedHtml = mdParser.render(filledMarkdown);
+        tempDiv.innerHTML = generateInvitationHtmlFromMarkdown(renderedHtml);
 
         document.body.appendChild(tempDiv);
 
-        // Convert to canvas and add to PDF
+        // wait briefly to ensure base64 image is rendered in DOM
+        await new Promise((res)=>setTimeout(res,200));
+
         const canvas = await html2canvas(tempDiv, {
           scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false,
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false
         });
 
         document.body.removeChild(tempDiv);
 
         const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const pageWidth = 210; // A4 width mm portrait
+        const pageHeight = 297; // A4 height mm portrait
 
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        let imgWidth = pageWidth;
+        let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // scale down if taller than page
+        if (imgHeight > pageHeight) {
+          imgHeight = pageHeight;
+          imgWidth = (canvas.width * imgHeight) / canvas.height;
+        }
+
+        const posX = (pageWidth - imgWidth) / 2;
+        const posY = (pageHeight - imgHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', posX, posY, imgWidth, imgHeight);
       }
 
       // Save the PDF
@@ -767,9 +705,9 @@ Best regards,
   const currentLoading = activeTab === "general" ? loading : mailMergeLoading;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div className="min-h-screen flex flex-col p-4 md:p-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-6">
         <Mail className="w-8 h-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold">Graduation Invitations</h1>
@@ -778,14 +716,14 @@ Best regards,
       </div>
 
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-6">
           <XCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <Users className="w-8 h-8 text-blue-500" />
@@ -817,16 +755,17 @@ Best regards,
           <CardContent className="flex items-center gap-3 p-4">
             <Calendar className="w-8 h-8 text-orange-500" />
             <div>
-              <p className="text-lg font-bold">June 9, 2025</p>
+              <p className="text-lg font-bold">July 9, 2025</p>
               <p className="text-sm text-muted-foreground">Event Date</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      {/* Main Content - Takes remaining height */}
+      <div className="flex-1 min-h-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             General Invitations
@@ -837,7 +776,8 @@ Best regards,
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
+        <div className="flex-1 min-h-0">
+          <TabsContent value="general" className="h-full flex flex-col space-y-6">
           {/* Filters */}
           <Card>
             <CardHeader>
@@ -901,9 +841,9 @@ Best regards,
             </CardContent>
           </Card>
 
-          {/* Recipients Table */}
-          <Card>
-            <CardHeader>
+          {/* Recipients Table - Takes remaining height */}
+          <Card className="flex-1 min-h-0 flex flex-col">
+            <CardHeader className="flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
@@ -922,7 +862,7 @@ Best regards,
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 min-h-0 flex flex-col">
               {currentLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center space-y-4">
@@ -937,8 +877,8 @@ Best regards,
                   <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
                 </div>
               ) : (
-                <>
-                  <ScrollArea className="h-[400px]">
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <ScrollArea className="flex-1">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1047,16 +987,16 @@ Best regards,
                       </span>
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="mailmerge" className="space-y-6">
-          {/* Students Table for Mail Merge */}
-          <Card>
-            <CardHeader>
+          <TabsContent value="mailmerge" className="h-full flex flex-col space-y-6">
+          {/* Students Table for Mail Merge - Takes remaining height */}
+          <Card className="flex-1 min-h-0 flex flex-col">
+            <CardHeader className="flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
@@ -1075,7 +1015,7 @@ Best regards,
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 min-h-0 flex flex-col">
               {mailMergeLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center space-y-4">
@@ -1090,7 +1030,7 @@ Best regards,
                   <p className="text-muted-foreground">Students need to be approved before they can receive invitations.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="flex-1 min-h-0 overflow-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
@@ -1149,13 +1089,14 @@ Best regards,
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        </div>
 
         {/* Invitation Editor - Common for both tabs */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 flex-1 min-h-0">
                     {/* Editor */}
-          <Card className="border-2 border-blue-200 dark:border-blue-800">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-b">
+          <Card className="border-2 border-blue-200 dark:border-blue-800 flex flex-col h-full">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-b flex-shrink-0">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg">
                   <FileText className="w-5 h-5 text-white" />
@@ -1166,7 +1107,7 @@ Best regards,
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-6 p-6 flex-1 min-h-0 flex flex-col">
               {/* Template Quick Actions */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -1189,7 +1130,7 @@ Dear {{name}},
 We are delighted to invite you to the **Gordon College Graduation Ceremony**.
 
 **Event Details:**
-- 📅 **Date:** June 9, 2025
+- 📅 **Date:** July 9, 2025
 - 📍 **Location:** Subic Bay Exhibition and Convention Center
 - ⏰ **Time:** 10:00 AM
 
@@ -1211,7 +1152,11 @@ Best regards,
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setEditorValue(editorValue + "\n\n{{name}} • {{email}} • {{program}}")}
+                    onClick={() => {
+                      const cursor = editorValue.length;
+                      const template = "\n\n**Recipient:** {{name}}\n**Email:** {{email}}\n**Program:** {{program}}";
+                      setEditorValue(editorValue + template);
+                    }}
                     className="border-green-200 hover:bg-green-50 text-xs"
                   >
                     <Users className="w-3 h-3 mr-1" />
@@ -1240,29 +1185,43 @@ Best regards,
                 </div>
 
                 {/* Quick Insert Buttons */}
-                <div className="flex flex-wrap gap-1">
-                  <span className="text-xs text-muted-foreground mr-2">Quick Insert:</span>
-                  {[
-                    { emoji: "🎓", label: "Graduation" },
-                    { emoji: "🎉", label: "Celebration" },
-                    { emoji: "📅", label: "Date" },
-                    { emoji: "📍", label: "Location" },
-                    { emoji: "⏰", label: "Time" },
-                    { emoji: "🏆", label: "Award" },
-                    { emoji: "🎊", label: "Party" },
-                    { emoji: "✨", label: "Sparkle" }
-                  ].map((item) => (
-                    <Button
-                      key={item.emoji}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditorValue(editorValue + item.emoji)}
-                      className="h-6 px-2 text-xs hover:bg-blue-50"
-                      title={`Add ${item.label} emoji`}
-                    >
-                      {item.emoji}
-                    </Button>
-                  ))}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Quick Insert:</span>
+                    <Select onValueChange={(value) => setEditorValue(editorValue + value)}>
+                      <SelectTrigger className="w-40 h-6 text-xs">
+                        <SelectValue placeholder="Variables..." />
+                      </SelectTrigger>
+                                             <SelectContent>
+                         <SelectItem value="{{name}}">{"{{name}}"} - Recipient name</SelectItem>
+                         <SelectItem value="{{email}}">{"{{email}}"} - Email address</SelectItem>
+                         <SelectItem value="{{program}}">{"{{program}}"} - Program/Department</SelectItem>
+                         <SelectItem value="{{award}}">{"{{award}}"} - Award title</SelectItem>
+                         <SelectItem value="![Grad Photo]({{gradPhoto}})">{"{{gradPhoto}}"} - Photo</SelectItem>
+                       </SelectContent>
+                    </Select>
+                    <div className="flex gap-1">
+                      {[
+                        { emoji: "🎓", label: "Graduation" },
+                        { emoji: "🎉", label: "Celebration" },
+                        { emoji: "📅", label: "Date" },
+                        { emoji: "📍", label: "Location" },
+                        { emoji: "⏰", label: "Time" },
+                        { emoji: "🏆", label: "Award" }
+                      ].map((item) => (
+                        <Button
+                          key={item.emoji}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditorValue(editorValue + item.emoji)}
+                          className="h-6 px-2 text-xs hover:bg-blue-50"
+                          title={`Add ${item.label} emoji`}
+                        >
+                          {item.emoji}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1272,7 +1231,10 @@ Best regards,
                   <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Markdown Editor</h4>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
-                      Live Preview
+                      Live Preview ✨
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {previewRecipient ? 'Personalized' : 'Template'}
                     </Badge>
                     <Button
                       variant="ghost"
@@ -1313,12 +1275,15 @@ Best regards,
                 {/* Editor Stats */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground bg-blue-50/50 dark:bg-blue-950/20 rounded px-3 py-2">
                   <div className="flex items-center gap-4">
-                    <span>Words: {editorValue.split(/\s+/).filter(word => word.length > 0).length}</span>
-                    <span>Lines: {editorValue.split('\n').length}</span>
-                    <span>Placeholders: {(editorValue.match(/\{\{[^}]+\}\}/g) || []).length}</span>
+                    <span>📝 Words: {editorValue.split(/\s+/).filter(word => word.length > 0).length}</span>
+                    <span>📄 Lines: {editorValue.split('\n').length}</span>
+                    <span>🔧 Variables: {(editorValue.match(/\{\{[^}]+\}\}/g) || []).length}</span>
+                    {previewRecipient && (
+                      <span className="text-purple-600">👤 Preview: {previewRecipient.name}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-green-600">● Auto-saved</span>
+                    <span className="text-green-600">● Live Preview Active</span>
                   </div>
                 </div>
               </div>
@@ -1393,7 +1358,7 @@ It is with great pleasure that we invite you to attend the **Gordon College Grad
 **Academic Achievement:** {{award}}
 
 **Ceremony Information:**
-📅 **Date:** June 9, 2025
+📅 **Date:** July 9, 2025
 📍 **Venue:** Subic Bay Exhibition and Convention Center
 ⏰ **Time:** 10:00 AM
 
@@ -1425,7 +1390,7 @@ We're throwing a graduation party and you're the star! ✨
 **You've earned:** {{award}} 🏆
 
 **Party Details:**
-🗓️ **When:** June 9, 2025 at 10:00 AM
+🗓️ **When:** July 9, 2025 at 10:00 AM
 🏢 **Where:** Subic Bay Exhibition and Convention Center
 🎯 **Program:** {{program}}
 
@@ -1463,8 +1428,8 @@ Can't wait to see you there!
           </Card>
 
           {/* Preview */}
-          <Card className="border-2 border-purple-200 dark:border-purple-800">
-            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 border-b">
+          <Card className="border-2 border-purple-200 dark:border-purple-800 flex flex-col h-full">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 border-b flex-shrink-0">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg">
                   <Eye className="w-5 h-5 text-white" />
@@ -1475,12 +1440,34 @@ Can't wait to see you there!
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-6">
+            <CardContent className="space-y-4 p-6 flex-1 min-h-0 flex flex-col">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Choose recipient to preview:
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Choose recipient to preview:
+                  </label>
+                  <div className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 rounded-lg p-1">
+                    <Button
+                      variant={previewMode === "rendered" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setPreviewMode("rendered")}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Rendered
+                    </Button>
+                    <Button
+                      variant={previewMode === "raw" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setPreviewMode("raw")}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <FileText className="w-3 h-3 mr-1" />
+                      Raw
+                    </Button>
+                  </div>
+                </div>
                 <Select 
                   value={previewRecipient?.id || ""} 
                   onValueChange={(value) => {
@@ -1515,14 +1502,31 @@ Can't wait to see you there!
                 </Select>
               </div>
               
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1 min-h-[500px] max-h-[500px] overflow-y-auto">
+              <div suppressHydrationWarning className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1 flex-1 min-h-0 overflow-y-auto">
                 {previewRecipient ? (
-                  <InvitationCard recipient={previewRecipient} />
+                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6 h-full overflow-y-auto">
+                    {previewMode === "rendered" ? (
+                      <StyledCard>
+                        <MarkdownPreview 
+                          source={getPreviewMarkdown()} 
+                          style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                          data-color-mode="light"
+                          className={MARKDOWN_PREVIEW_CLASSES}
+                        />
+                      </StyledCard>
+                    ) : (
+                      <pre className="whitespace-pre-wrap text-sm font-mono bg-gray-50 dark:bg-gray-800 p-4 rounded border overflow-auto">
+                        {getPreviewMarkdown()}
+                      </pre>
+                    )}
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center space-y-4">
                       <Eye className="w-12 h-12 mx-auto opacity-50" />
                       <p>Select a recipient to preview the invitation</p>
+                      <p className="text-xs">The preview will show your markdown template with real data</p>
+                      <p className="text-xs mt-2">Use the toggle above to switch between rendered and raw markdown</p>
                     </div>
                   </div>
                 )}
@@ -1530,7 +1534,6 @@ Can't wait to see you there!
             </CardContent>
           </Card>
         </div>
-
         {/* Action Buttons */}
         <Card>
           <CardContent className="flex flex-wrap gap-4 p-6">
@@ -1545,11 +1548,23 @@ Can't wait to see you there!
                 <DialogHeader>
                   <DialogTitle>Invitation Preview</DialogTitle>
                 </DialogHeader>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1">
+                <div suppressHydrationWarning className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1">
                   {currentSelected.length === 1 && previewRecipient ? (
-                    <InvitationCard recipient={previewRecipient} />
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-h-[70vh] overflow-y-auto">
+                      <StyledCard>
+                        <MarkdownPreview 
+                          source={getPreviewMarkdown()} 
+                          style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                          data-color-mode="light"
+                          className={MARKDOWN_PREVIEW_CLASSES}
+                        />
+                      </StyledCard>
+                    </div>
                   ) : (
-                    <div className="text-muted-foreground p-8 text-center">Select a single recipient to preview personalized invitation.</div>
+                    <div className="text-muted-foreground p-8 text-center">
+                      <p>Select a single recipient to preview personalized invitation.</p>
+                      <p className="text-xs mt-2">The preview will render your markdown template with actual recipient data.</p>
+                    </div>
                   )}
                 </div>
               </DialogContent>
@@ -1586,8 +1601,15 @@ Can't wait to see you there!
                             </div>
                             {rec.award && <Badge variant="secondary">{rec.award}</Badge>}
                           </div>
-                          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1">
-                            <InvitationCard recipient={rec} />
+                          <div suppressHydrationWarning className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 border rounded-lg p-1">
+                            <StyledCard>
+                              <MarkdownPreview 
+                                source={replaceVars(editorValue, rec)} 
+                                style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                                data-color-mode="light"
+                                className={MARKDOWN_PREVIEW_CLASSES}
+                              />
+                            </StyledCard>
                           </div>
                         </div>
                       );
@@ -1630,7 +1652,7 @@ Can't wait to see you there!
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-blue-600" />
-                        <span>June 9, 2025 at 10:00 AM</span>
+                        <span>July 9, 2025 at 10:00 AM</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-blue-600" />
@@ -1721,38 +1743,57 @@ Can't wait to see you there!
             </Button>
           </CardContent>
         </Card>
-      </Tabs>
 
-      {/* Recipient Details Modal */}
-      <Dialog open={!!detailsRecipient} onOpenChange={() => setDetailsRecipient(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Recipient Details</DialogTitle>
-          </DialogHeader>
-          {detailsRecipient && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <strong>Name:</strong> {detailsRecipient.name}
+        {/* Recipient Details Modal */}
+        <Dialog open={!!detailsRecipient} onOpenChange={() => setDetailsRecipient(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Recipient Details</DialogTitle>
+            </DialogHeader>
+            {detailsRecipient && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <strong>Name:</strong> {detailsRecipient.name}
+                </div>
+                <div className="flex items-center gap-2">
+                  <strong>Email:</strong> {detailsRecipient.email}
+                </div>
+                <div className="flex items-center gap-2">
+                  <strong>Role:</strong> 
+                  <Badge variant="outline">{detailsRecipient.role}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  <strong>Department:</strong> {detailsRecipient.department}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4" />
+                  <strong>Award:</strong> {detailsRecipient.award || "None"}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <strong>Email:</strong> {detailsRecipient.email}
-              </div>
-              <div className="flex items-center gap-2">
-                <strong>Role:</strong> 
-                <Badge variant="outline">{detailsRecipient.role}</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <strong>Department:</strong> {detailsRecipient.department}
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-4 h-4" />
-                <strong>Award:</strong> {detailsRecipient.award || "None"}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            )}
+          </DialogContent>
+        </Dialog>
+        </Tabs>
+      </div>
     </div>
   );
 } 
+
+// Helper to wrap rendered markdown in dark-theme card (matches StyledCard)
+function generateInvitationHtmlFromMarkdown(renderedHtml: string) {
+  return `
+  <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 12px; padding: 4px; width: 100%; font-family: 'Inter', Arial, sans-serif; color:#f8fafc;">
+    <style>
+      img { max-width: 140mm; height: auto; display:block; margin: 0 auto; }
+    </style>
+    <div style="background:#0f172a;border-radius:8px;position:relative;padding:40px;min-height:auto;overflow:visible;">
+      <div style="position:absolute;top:0;left:0;width:100%;height:8px;background:linear-gradient(90deg,#3b82f6 0%,#8b5cf6 50%,#3b82f6 100%);"></div>
+      <div style="position:absolute;top:8px;left:0;width:100%;height:4px;background:linear-gradient(90deg,#fbbf24 0%,#f59e0b 50%,#fbbf24 100%);"></div>
+      <div style="position:relative;z-index:10;">
+        ${renderedHtml}
+      </div>
+      <div style="position:absolute;bottom:0;left:0;width:100%;height:8px;background:linear-gradient(90deg,#3b82f6 0%,#8b5cf6 50%,#3b82f6 100%);"></div>
+    </div>
+  </div>`;
+}

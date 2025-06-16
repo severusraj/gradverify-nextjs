@@ -130,15 +130,15 @@ export default function VerificationManagementPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30";
       case "APPROVED":
-        return "bg-green-100 text-green-800";
+        return "bg-green-500/20 text-green-300 border border-green-500/30";
       case "REJECTED":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500/20 text-red-300 border border-red-500/30";
       case "NOT_SUBMITTED":
-        return "bg-gray-100 text-gray-800";
+        return "bg-slate-500/20 text-slate-300 border border-slate-500/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-slate-500/20 text-slate-300 border border-slate-500/30";
     }
   };
 
@@ -320,14 +320,14 @@ export default function VerificationManagementPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Program</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">PSA Status</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Award Status</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Overall</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Submitted At</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Student</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Department</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Program</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">PSA Status</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Award Status</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Overall</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Submitted At</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-400 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -454,31 +454,31 @@ export default function VerificationManagementPage() {
       {/* Modal for viewing request details */}
       {isViewOpen && viewRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl relative overflow-hidden">
+          <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-lg shadow-lg p-6 w-full max-w-3xl relative overflow-hidden">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl z-10"
+              className="absolute top-2 right-2 text-slate-400 hover:text-white text-2xl z-10"
               onClick={() => setIsViewOpen(false)}
               aria-label="Close"
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4">Verification Request Details</h2>
+            <h2 className="text-xl font-bold mb-4 text-white">Verification Request Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto pr-4">
               {/* Left Column: Details */}
-              <div className="space-y-2">
-                <div><b>Name:</b> {viewRequest.user?.name}</div>
-                <div><b>Email:</b> {viewRequest.user?.email}</div>
-                <div><b>Student ID:</b> {viewRequest.studentId}</div>
-                <div><b>Department:</b> {viewRequest.department}</div>
-                <div><b>Program:</b> {viewRequest.program}</div>
+              <div className="space-y-2 text-white">
+                <div><b className="text-slate-300">Name:</b> {viewRequest.user?.name}</div>
+                <div><b className="text-slate-300">Email:</b> {viewRequest.user?.email}</div>
+                <div><b className="text-slate-300">Student ID:</b> {viewRequest.studentId}</div>
+                <div><b className="text-slate-300">Department:</b> {viewRequest.department}</div>
+                <div><b className="text-slate-300">Program:</b> {viewRequest.program}</div>
                 <div className="space-y-1">
-                  <div><b>PSA Status:</b> <span className={getStatusColor(viewRequest.psaStatus)}>{viewRequest.psaStatus}</span></div>
-                  <div><b>Award Status:</b> <span className={getStatusColor(viewRequest.awardStatus)}>{viewRequest.awardStatus}</span></div>
-                  <div><b>Overall Status:</b> <span className={getStatusColor(viewRequest.overallStatus)}>{viewRequest.overallStatus}</span></div>
+                  <div><b className="text-slate-300">PSA Status:</b> <span className={`px-2 py-1 rounded text-xs ${getStatusColor(viewRequest.psaStatus)}`}>{viewRequest.psaStatus}</span></div>
+                  <div><b className="text-slate-300">Award Status:</b> <span className={`px-2 py-1 rounded text-xs ${getStatusColor(viewRequest.awardStatus)}`}>{viewRequest.awardStatus}</span></div>
+                  <div><b className="text-slate-300">Overall Status:</b> <span className={`px-2 py-1 rounded text-xs ${getStatusColor(viewRequest.overallStatus)}`}>{viewRequest.overallStatus}</span></div>
                 </div>
-                <div><b>Date of Birth:</b> {viewRequest.dob}</div>
-                <div><b>Place of Birth:</b> {viewRequest.pob}</div>
-                <div><b>Submitted At:</b> {new Date(viewRequest.createdAt).toLocaleString()}</div>
+                <div><b className="text-slate-300">Date of Birth:</b> {viewRequest.dob}</div>
+                <div><b className="text-slate-300">Place of Birth:</b> {viewRequest.pob}</div>
+                <div><b className="text-slate-300">Submitted At:</b> {new Date(viewRequest.createdAt).toLocaleString()}</div>
                 <div className="flex gap-2 pt-4">
                   <Button
                     variant="outline"
@@ -534,8 +534,8 @@ export default function VerificationManagementPage() {
               {/* Right Column: PSA Content */}
               {psaUrl && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">PSA Content</h3>
-                  <div className="border rounded-md overflow-hidden">
+                  <h3 className="text-lg font-semibold text-white">PSA Content</h3>
+                  <div className="border border-slate-600 rounded-md overflow-hidden">
                     {psaUrl.toLowerCase().endsWith('.pdf') ? (
                       <iframe
                         src={psaUrl}
@@ -552,7 +552,7 @@ export default function VerificationManagementPage() {
                     download
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                   >
                     Download PSA
                   </a>
@@ -566,27 +566,28 @@ export default function VerificationManagementPage() {
       {/* Modal for Approve/Reject action with feedback */}
       {actionStudent && actionType && actionDocumentType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+          <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-lg shadow-lg p-6 w-full max-w-md relative">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              className="absolute top-2 right-2 text-slate-400 hover:text-white text-2xl"
               onClick={() => { setActionStudent(null); setActionType(null); setActionDocumentType(null); setFeedback(""); }}
               aria-label="Close"
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-xl font-bold mb-4 text-white">
               {actionType === "APPROVED" ? "Approve" : "Reject"} {actionDocumentType}
             </h2>
-            <div className="mb-4">
-              <div><b>Name:</b> {actionStudent.user?.name}</div>
-              <div><b>Student ID:</b> {actionStudent.studentId}</div>
-              <div><b>Department:</b> {actionStudent.department}</div>
-              <div><b>Program:</b> {actionStudent.program}</div>
+            <div className="mb-4 text-white">
+              <div><b className="text-slate-300">Name:</b> {actionStudent.user?.name}</div>
+              <div><b className="text-slate-300">Student ID:</b> {actionStudent.studentId}</div>
+              <div><b className="text-slate-300">Department:</b> {actionStudent.department}</div>
+              <div><b className="text-slate-300">Program:</b> {actionStudent.program}</div>
             </div>
             {actionType === "REJECTED" && (
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Rejection Feedback</label>
+                <label className="block text-sm font-medium mb-1 text-slate-300">Rejection Feedback</label>
                 <Input
+                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
                   placeholder="Enter feedback for rejection..."
                   value={feedback}
                   onChange={e => setFeedback(e.target.value)}
