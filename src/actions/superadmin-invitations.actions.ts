@@ -6,8 +6,6 @@ import { Resend } from "resend";
 import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
 import { getSignedDownloadUrl } from "@/lib/utils/s3";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const invitationSchema = z.object({
   recipients: z.array(z.string()),
   template: z.string(),
@@ -23,6 +21,7 @@ export async function createInvitation({ recipients, template, subject, eventDat
   eventDate: string;
   eventLocation: string;
 }) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const validation = invitationSchema.safeParse({ recipients, template, subject, eventDate, eventLocation });
     if (!validation.success) {
