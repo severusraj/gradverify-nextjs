@@ -12,7 +12,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Eye, Loader2, Download, FileText, GraduationCap, Clock, CheckCircle, XCircle, Users, AlertCircle } from "lucide-react";
+import { Eye, Loader2, Download, FileText, GraduationCap, Clock, CheckCircle, XCircle, Users, AlertCircle, LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import Image from "next/image";
@@ -44,7 +44,7 @@ const StatCard = ({ title, value, description, icon: Icon, loading, color }: {
 	title: string;
 	value: number;
 	description: string;
-	icon: any;
+	icon: LucideIcon;
 	loading: boolean;
 	color: string;
 }) => (

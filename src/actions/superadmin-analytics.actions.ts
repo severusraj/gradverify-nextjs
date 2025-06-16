@@ -107,4 +107,43 @@ export async function getSuperadminAnalytics(range: "7days" | "30days" | "90days
     processingTimes,
     activeVerifiers: activeVerifiers.length,
   };
+}
+
+// Lightweight summary retrieval for quick dashboard paint
+export async function getSuperadminAnalyticsSummary() {
+  try {
+    // Total submissions and status counts
+    const [totals, approvedCount, processingTimeData, activeVerifiers] = await Promise.all([
+      prisma.studentProfile.count(),
+      prisma.studentProfile.count({ where: { overallStatus: "APPROVED" } }),
+      prisma.$queryRaw<{ diff: number }[]>`
+        SELECT EXTRACT(EPOCH FROM AVG("updatedAt" - "createdAt")) / 86400 AS diff
+        FROM "StudentProfile"
+        WHERE "overallStatus" = ${"APPROVED"}::"SubmissionStatus" AND "updatedAt" IS NOT NULL
+      `,
+      prisma.auditLog.groupBy({
+        by: ["userId"],
+        where: {
+          action: { in: ["VERIFICATION_APPROVED", "VERIFICATION_REJECTED"] },
+          createdAt: { gte: subDays(new Date(), 30) },
+        },
+      }).then(arr => arr.length),
+    ]);
+
+    const approvalRate = totals ? (approvedCount / totals) * 100 : 0;
+    const avgDays = processingTimeData.length && processingTimeData[0].diff !== null ? Number(processingTimeData[0].diff) : null;
+
+    return {
+      success: true,
+      summary: {
+        totalSubmissions: totals,
+        approvalRate,
+        avgProcessingTime: avgDays,
+        activeVerifiers,
+      },
+    } as const;
+  } catch (error) {
+    console.error("Error fetching analytics summary", error);
+    return { success: false, error: "Failed to fetch summary" } as const;
+  }
 } 
