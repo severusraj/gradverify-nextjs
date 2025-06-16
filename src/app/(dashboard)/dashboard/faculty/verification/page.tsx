@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,8 @@ export default function FacultyVerificationPage() {
   const [psaLoading, setPsaLoading] = useState(false);
   const [gradPhotoUrl, setGradPhotoUrl] = useState<string | null>(null);
   const [gradPhotoLoading, setGradPhotoLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const fetchStudents = useCallback(async () => {
     try {
@@ -156,10 +158,14 @@ export default function FacultyVerificationPage() {
     }
   };
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.studentId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudents = useMemo(() => {
+    const query = deferredSearchQuery.toLowerCase();
+    if (!query) return students;
+    return students.filter((student) =>
+      student.name.toLowerCase().includes(query) ||
+      student.studentId.toLowerCase().includes(query)
+    );
+  }, [students, deferredSearchQuery]);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -179,7 +185,7 @@ export default function FacultyVerificationPage() {
                 className="w-full"
               />
             </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={departmentFilter} onValueChange={(value) => startTransition(() => setDepartmentFilter(value))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
@@ -189,7 +195,7 @@ export default function FacultyVerificationPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(value) => startTransition(() => setStatusFilter(value))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>

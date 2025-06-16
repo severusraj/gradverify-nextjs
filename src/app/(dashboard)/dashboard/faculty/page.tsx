@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Eye, Loader2, Download, FileText, GraduationCap, Clock, CheckCircle, XCircle, Users, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import Image from "next/image";
@@ -30,6 +39,28 @@ interface Student {
 	awards?: string[];
 	createdAt?: string;
 }
+
+const StatCard = ({ title, value, description, icon: Icon, loading, color }: {
+	title: string;
+	value: number;
+	description: string;
+	icon: any;
+	loading: boolean;
+	color: string;
+}) => (
+	<Card className="relative overflow-hidden">
+		<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+			<CardTitle className="text-sm font-medium">{title}</CardTitle>
+			<Icon className={`h-4 w-4 ${color}`} />
+		</CardHeader>
+		<CardContent>
+			<div className={`text-2xl font-bold ${color}`}>
+				{loading ? <Loader2 className="h-6 w-6 animate-spin" /> : value}
+			</div>
+			<p className="text-xs text-muted-foreground">{description}</p>
+		</CardContent>
+	</Card>
+);
 
 export default function FacultyDashboardPage() {
 	const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, notSubmitted: 0, total: 0 });
@@ -105,110 +136,139 @@ export default function FacultyDashboardPage() {
 		}
 	};
 
+	const getStatusBadge = (status: string) => {
+		switch (status) {
+			case "APPROVED":
+				return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+					<CheckCircle className="h-3 w-3 mr-1" />
+					Approved
+				</Badge>;
+			case "REJECTED":
+				return <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">
+					<XCircle className="h-3 w-3 mr-1" />
+					Rejected
+				</Badge>;
+			case "PENDING":
+				return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+					<Clock className="h-3 w-3 mr-1" />
+					Pending
+				</Badge>;
+			default:
+				return <Badge variant="outline">{status}</Badge>;
+		}
+	};
+
 	return (
-		<div className="space-y-8">
-			<div>
-				<h1 className="text-2xl font-bold">Faculty Dashboard</h1>
-				<p className="text-muted-foreground">Overview of your verification activity and recent submissions.</p>
-			</div>
-			<div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-				<Card>
-					<CardHeader>
-						<CardTitle>Pending</CardTitle>
-						<CardDescription>Awaiting your review</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{loadingStats ? <Loader2 className="animate-spin" /> : <span className="text-3xl font-bold">{stats.pending}</span>}
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Approved</CardTitle>
-						<CardDescription>Verified by you</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{loadingStats ? <Loader2 className="animate-spin" /> : <span className="text-3xl font-bold text-green-600">{stats.approved}</span>}
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Rejected</CardTitle>
-						<CardDescription>Marked as not valid</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{loadingStats ? <Loader2 className="animate-spin" /> : <span className="text-3xl font-bold text-red-600">{stats.rejected}</span>}
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Not Submitted</CardTitle>
-						<CardDescription>No submission yet</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{loadingStats ? <Loader2 className="animate-spin" /> : <span className="text-3xl font-bold text-gray-500">{stats.notSubmitted}</span>}
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Total Students</CardTitle>
-						<CardDescription>All students</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{loadingStats ? <Loader2 className="animate-spin" /> : <span className="text-3xl font-bold text-blue-600">{stats.total}</span>}
-					</CardContent>
-				</Card>
+		<div className="space-y-8 p-6">
+			<div className="space-y-2">
+				<h1 className="text-3xl font-bold tracking-tight">Faculty Dashboard</h1>
+				<p className="text-muted-foreground">Monitor verification activity and manage student submissions</p>
 			</div>
 
+			{/* Stats Grid */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+				<StatCard
+					title="Pending Reviews"
+					value={stats.pending}
+					description="Awaiting your review"
+					icon={Clock}
+					loading={loadingStats}
+					color="text-yellow-600"
+				/>
+				<StatCard
+					title="Approved"
+					value={stats.approved}
+					description="Verified documents"
+					icon={CheckCircle}
+					loading={loadingStats}
+					color="text-green-600"
+				/>
+				<StatCard
+					title="Rejected"
+					value={stats.rejected}
+					description="Rejected documents"
+					icon={XCircle}
+					loading={loadingStats}
+					color="text-red-600"
+				/>
+				<StatCard
+					title="Not Submitted"
+					value={stats.notSubmitted}
+					description="No submission yet"
+					icon={AlertCircle}
+					loading={loadingStats}
+					color="text-gray-500"
+				/>
+				<StatCard
+					title="Total Students"
+					value={stats.total}
+					description="All registered students"
+					icon={Users}
+					loading={loadingStats}
+					color="text-blue-600"
+				/>
+			</div>
+
+			{/* Recent Submissions */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Recent Submissions</CardTitle>
-					<CardDescription>Latest students awaiting or recently processed</CardDescription>
+					<CardTitle className="flex items-center gap-2">
+						<FileText className="h-5 w-5" />
+						Recent Submissions
+					</CardTitle>
+					<CardDescription>Latest student submissions requiring attention</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{loadingRecent ? (
-						<div className="flex justify-center py-8"><Loader2 className="animate-spin" /></div>
+						<div className="flex justify-center py-12">
+							<Loader2 className="h-8 w-8 animate-spin" />
+						</div>
 					) : recent.length === 0 ? (
-						<div className="text-center text-muted-foreground py-8">No recent submissions.</div>
+						<div className="text-center text-muted-foreground py-12">
+							<FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
+							<p className="text-lg font-medium">No recent submissions</p>
+							<p className="text-sm">New student submissions will appear here</p>
+						</div>
 					) : (
-						<div className="overflow-x-auto">
-							<table className="min-w-full text-sm">
-								<thead>
-									<tr className="border-b">
-										<th className="px-2 py-1 text-left">Student ID</th>
-										<th className="px-2 py-1 text-left">Name</th>
-										<th className="px-2 py-1 text-left">Department</th>
-										<th className="px-2 py-1 text-left">Program</th>
-										<th className="px-2 py-1 text-left">Status</th>
-										<th className="px-2 py-1 text-left">Action</th>
-									</tr>
-								</thead>
-								<tbody>
+						<div className="rounded-md border">
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead className="font-semibold">Student ID</TableHead>
+										<TableHead className="font-semibold">Name</TableHead>
+										<TableHead className="font-semibold">Department</TableHead>
+										<TableHead className="font-semibold">Program</TableHead>
+										<TableHead className="font-semibold">Status</TableHead>
+										<TableHead className="font-semibold">Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
 									{recent.map((student) => (
-										<tr key={student.id} className="border-b hover:bg-accent">
-											<td className="px-2 py-1">{student.studentId}</td>
-											<td className="px-2 py-1">{student.name}</td>
-											<td className="px-2 py-1">{student.department}</td>
-											<td className="px-2 py-1">{student.program}</td>
-											<td className="px-2 py-1">
-												<span className={
-													student.status === "APPROVED"
-														? "text-green-600"
-														: student.status === "REJECTED"
-														? "text-red-600"
-														: "text-yellow-600"
-												}>
-													{student.status}
-												</span>
-											</td>
-											<td className="px-2 py-1">
-												<Button size="icon" variant="outline" onClick={() => setSelectedStudent(student)}>
-													<Eye className="h-4 w-4" />
+										<TableRow key={student.id} className="hover:bg-muted/50">
+											<TableCell className="font-mono text-sm">{student.studentId}</TableCell>
+											<TableCell className="font-medium">{student.name}</TableCell>
+											<TableCell>
+												<Badge variant="outline" className="font-normal">
+													{student.department}
+												</Badge>
+											</TableCell>
+											<TableCell className="text-sm text-muted-foreground">{student.program}</TableCell>
+											<TableCell>{getStatusBadge(student.status)}</TableCell>
+											<TableCell>
+												<Button 
+													size="sm" 
+													variant="outline" 
+													onClick={() => setSelectedStudent(student)}
+													className="h-8 px-3"
+												>
+													<Eye className="h-4 w-4 mr-1" />
+													View
 												</Button>
-											</td>
-										</tr>
+											</TableCell>
+										</TableRow>
 									))}
-								</tbody>
-							</table>
+								</TableBody>
+							</Table>
 						</div>
 					)}
 				</CardContent>
@@ -222,102 +282,138 @@ export default function FacultyDashboardPage() {
 				setPsaLoading(false);
 				setGradPhotoLoading(false);
 			}}>
-				<DialogContent className="max-w-2xl">
+				<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
 					<DialogHeader>
-						<DialogTitle>Student Details</DialogTitle>
+						<DialogTitle className="flex items-center gap-2">
+							<GraduationCap className="h-5 w-5" />
+							Student Details
+						</DialogTitle>
 					</DialogHeader>
 					{selectedStudent && (
-						<div className="space-y-4">
-							<div className="grid grid-cols-2 gap-4">
-								<div>
-									<p className="text-sm font-medium">Student ID</p>
-									<p>{selectedStudent.studentId}</p>
+						<div className="space-y-6">
+							{/* Student Info Grid */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+								<div className="space-y-1">
+									<p className="text-sm font-medium text-muted-foreground">Student ID</p>
+									<p className="font-mono font-medium">{selectedStudent.studentId}</p>
 								</div>
-								<div>
-									<p className="text-sm font-medium">Name</p>
-									<p>{selectedStudent.name}</p>
+								<div className="space-y-1">
+									<p className="text-sm font-medium text-muted-foreground">Full Name</p>
+									<p className="font-medium">{selectedStudent.name}</p>
 								</div>
-								<div>
-									<p className="text-sm font-medium">Department</p>
-									<p>{selectedStudent.department}</p>
+								<div className="space-y-1">
+									<p className="text-sm font-medium text-muted-foreground">Department</p>
+									<Badge variant="outline">{selectedStudent.department}</Badge>
 								</div>
-								<div>
-									<p className="text-sm font-medium">Program</p>
+								<div className="space-y-1">
+									<p className="text-sm font-medium text-muted-foreground">Program</p>
 									<p>{selectedStudent.program}</p>
 								</div>
+								<div className="space-y-1">
+									<p className="text-sm font-medium text-muted-foreground">Status</p>
+									{getStatusBadge(selectedStudent.status)}
+								</div>
+							</div>
+
+							{/* Documents Section */}
+							<div className="space-y-4">
 								{selectedStudent.psaFile && (
-									<div className="col-span-2">
-										<p className="text-sm font-medium">PSA Document</p>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => handleViewPSA(selectedStudent.id)}
-											disabled={psaLoading}
-											className="mb-2"
-										>
-											{psaLoading ? (
-												<Loader2 className="h-4 w-4 animate-spin mr-2" />
-											) : (
-												<Download className="h-4 w-4 mr-2" />
-											)}
-											View/Download PSA
-										</Button>
-										{psaUrl && (
-											<div className="mt-2">
-												<a
-													href={psaUrl}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-blue-600 hover:underline mr-4"
-													download
-												>
-													Download PSA
-												</a>
-												{/* Preview if image */}
-												<div className="mt-2">
-													<img src={psaUrl} alt="PSA Document" width={256} height={256} className="max-h-64 rounded border" />
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-lg flex items-center gap-2">
+												<FileText className="h-4 w-4" />
+												PSA Birth Certificate
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<Button
+												variant="outline"
+												onClick={() => handleViewPSA(selectedStudent.id)}
+												disabled={psaLoading}
+												className="w-full sm:w-auto"
+											>
+												{psaLoading ? (
+													<Loader2 className="h-4 w-4 animate-spin mr-2" />
+												) : (
+													<Download className="h-4 w-4 mr-2" />
+												)}
+												View/Download PSA
+											</Button>
+											{psaUrl && (
+												<div className="space-y-3">
+													<a
+														href={psaUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-blue-600 hover:underline font-medium"
+														download
+													>
+														Download Original File
+													</a>
+													<div className="border rounded-lg p-2 bg-muted/20">
+														<Image 
+															src={psaUrl} 
+															alt="PSA Document" 
+															width={400} 
+															height={300} 
+															className="max-h-64 w-auto rounded border mx-auto" 
+														/>
+													</div>
 												</div>
-											</div>
-										)}
-									</div>
+											)}
+										</CardContent>
+									</Card>
 								)}
+
 								{selectedStudent.gradPhoto && (
-									<div className="col-span-2">
-										<p className="text-sm font-medium">Graduation Photo</p>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => handleViewGradPhoto(selectedStudent.id)}
-											disabled={gradPhotoLoading}
-											className="mb-2"
-										>
-											{gradPhotoLoading ? (
-												<Loader2 className="h-4 w-4 animate-spin mr-2" />
-											) : (
-												<Download className="h-4 w-4 mr-2" />
-											)}
-											View/Download Photo
-										</Button>
-										{gradPhotoUrl && (
-											<div className="mt-2">
-												<a
-													href={gradPhotoUrl}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-blue-600 hover:underline mr-4"
-													download
-												>
-													Download Photo
-												</a>
-												{/* Preview if image */}
-												<div className="mt-2">
-													<img src={gradPhotoUrl} alt="Graduation Photo" width={256} height={256} className="max-h-64 rounded border" />
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-lg flex items-center gap-2">
+												<GraduationCap className="h-4 w-4" />
+												Graduation Photo
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<Button
+												variant="outline"
+												onClick={() => handleViewGradPhoto(selectedStudent.id)}
+												disabled={gradPhotoLoading}
+												className="w-full sm:w-auto"
+											>
+												{gradPhotoLoading ? (
+													<Loader2 className="h-4 w-4 animate-spin mr-2" />
+												) : (
+													<Download className="h-4 w-4 mr-2" />
+												)}
+												View/Download Photo
+											</Button>
+											{gradPhotoUrl && (
+												<div className="space-y-3">
+													<a
+														href={gradPhotoUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-blue-600 hover:underline font-medium"
+														download
+													>
+														Download Original Photo
+													</a>
+													<div className="border rounded-lg p-2 bg-muted/20">
+														<Image 
+															src={gradPhotoUrl} 
+															alt="Graduation Photo" 
+															width={400} 
+															height={300} 
+															className="max-h-64 w-auto rounded border mx-auto" 
+														/>
+													</div>
 												</div>
-											</div>
-										)}
-									</div>
+											)}
+										</CardContent>
+									</Card>
 								)}
 							</div>
+
 							<DialogFooter>
 								<Button variant="outline" onClick={() => setSelectedStudent(null)}>
 									Close
