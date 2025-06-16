@@ -149,7 +149,7 @@ export default function VerificationPage() {
               variant="outline"
               size="sm"
               onClick={() => handleBulkAction("approve")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-green-400 border-green-500/30 hover:bg-green-500/20 hover:text-green-300"
             >
               <CheckCircle2 className="h-4 w-4" />
               Approve Selected
@@ -158,7 +158,7 @@ export default function VerificationPage() {
               variant="outline"
               size="sm"
               onClick={() => handleBulkAction("reject")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-red-400 border-red-500/30 hover:bg-red-500/20 hover:text-red-300"
             >
               <XCircle className="h-4 w-4" />
               Reject Selected
@@ -242,10 +242,10 @@ export default function VerificationPage() {
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             submission.psaStatus === "APPROVED"
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-green-500/20 text-green-300 border border-green-500/30"
                               : submission.psaStatus === "REJECTED"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                              : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
                           }`}
                         >
                           PSA: {submission.psaStatus}
@@ -253,10 +253,10 @@ export default function VerificationPage() {
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             submission.awardStatus === "APPROVED"
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-green-500/20 text-green-300 border border-green-500/30"
                               : submission.awardStatus === "REJECTED"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                              : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
                           }`}
                         >
                           Award: {submission.awardStatus}

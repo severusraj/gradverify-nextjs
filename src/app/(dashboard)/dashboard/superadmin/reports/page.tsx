@@ -158,8 +158,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.verificationStats?.map((stat) => (
-                    <div key={stat.status} className="flex justify-between items-center">
+                  {reportData.verificationStats?.map((stat, idx) => (
+                    <div key={`${stat.status}-${idx}`} className="flex justify-between items-center">
                       <span>{stat.status}</span>
                       <span className="font-medium">{stat._count}</span>
                     </div>
@@ -174,8 +174,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.avgProcessingTimes?.map((time) => (
-                    <div key={time.program} className="flex justify-between items-center">
+                  {reportData.avgProcessingTimes?.map((time, idx) => (
+                    <div key={`${time.program}-${idx}`} className="flex justify-between items-center">
                       <span>{time.program}</span>
                       <span className="font-medium">{time.avgProcessingDays.toFixed(1)} days</span>
                     </div>
@@ -195,8 +195,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.departmentStats?.map((stat) => (
-                    <div key={stat.department} className="flex justify-between items-center">
+                  {reportData.departmentStats?.map((stat, idx) => (
+                    <div key={`${stat.department}-${idx}`} className="flex justify-between items-center">
                       <span>{stat.department}</span>
                       <span className="font-medium">{stat._count}</span>
                     </div>
@@ -211,8 +211,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.programStats?.map((stat) => (
-                    <div key={stat.program} className="flex justify-between items-center">
+                  {reportData.programStats?.map((stat, idx) => (
+                    <div key={`${stat.program}-${idx}`} className="flex justify-between items-center">
                       <span>{stat.program}</span>
                       <span className="font-medium">{stat._count}</span>
                     </div>
@@ -232,8 +232,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.awardStats?.map((stat) => (
-                    <div key={stat.status} className="flex justify-between items-center">
+                  {reportData.awardStats?.map((stat, idx) => (
+                    <div key={`${stat.status}-${idx}`} className="flex justify-between items-center">
                       <span>{stat.status}</span>
                       <span className="font-medium">{stat._count}</span>
                     </div>
@@ -248,8 +248,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.recentAwards?.map((award) => (
-                    <div key={award.id} className="flex justify-between items-center">
+                  {reportData.recentAwards?.map((award, idx) => (
+                    <div key={award.id ?? idx} className="flex justify-between items-center">
                       <div>
                         <div className="font-medium">
                           {award.user?.name ?? <span className="text-red-500">No Name</span>}
@@ -278,8 +278,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.userStats?.map((stat) => (
-                    <div key={stat.role} className="flex justify-between items-center">
+                  {reportData.userStats?.map((stat, idx) => (
+                    <div key={`${stat.role}-${idx}`} className="flex justify-between items-center">
                       <span>{stat.role}</span>
                       <span className="font-medium">{stat._count}</span>
                     </div>
@@ -294,8 +294,8 @@ const reportTypes = [
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reportData.recentActivity?.map((activity) => (
-                    <div key={activity.id} className="flex justify-between items-center">
+                  {reportData.recentActivity?.map((activity, idx) => (
+                    <div key={activity.id ?? idx} className="flex justify-between items-center">
                       <div>
                         <div className="font-medium">
                           {activity.user?.name ?? <span className="text-red-500">No Name</span>}

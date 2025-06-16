@@ -261,7 +261,7 @@ export default function FacultyVerificationPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-green-600 hover:bg-green-50"
+                                className="text-green-400 border-green-500/30 hover:bg-green-500/20 hover:text-green-300"
                                 onClick={() => handleVerification(student.id, "approve")}
                                 disabled={isVerifying}
                               >
@@ -270,7 +270,7 @@ export default function FacultyVerificationPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-red-600 hover:bg-red-50"
+                                className="text-red-400 border-red-500/30 hover:bg-red-500/20 hover:text-red-300"
                                 onClick={() => handleVerification(student.id, "reject")}
                                 disabled={isVerifying}
                               >
@@ -438,7 +438,7 @@ export default function FacultyVerificationPage() {
                   <>
                     <Button
                       variant="default"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 border-green-500"
                       onClick={() => handleVerification(selectedStudent.id, "approve")}
                       disabled={isVerifying}
                     >
@@ -453,6 +453,7 @@ export default function FacultyVerificationPage() {
                     </Button>
                     <Button
                       variant="destructive"
+                      className="bg-red-600 hover:bg-red-700 border-red-500"
                       onClick={() => handleVerification(selectedStudent.id, "reject")}
                       disabled={isVerifying}
                     >

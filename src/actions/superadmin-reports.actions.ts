@@ -185,15 +185,7 @@ export async function exportSuperadminReport({ type, period, formatType }: { typ
     doc.text(`Superadmin Report: ${type} (${period})`, 10, y);
     y += 10;
 
-    // Only show awards-related sections if the data has those properties
-    if (
-      type === 'awards' &&
-      typeof data === 'object' &&
-      data &&
-      'awardStats' in data &&
-      'departmentAwards' in data &&
-      'recentAwards' in data
-    ) {
+    if (type === 'awards' && data && 'awardStats' in data) {
       // Award Stats
       doc.setFontSize(12);
       doc.text("Award Stats:", 10, y);
@@ -225,10 +217,39 @@ export async function exportSuperadminReport({ type, period, formatType }: { typ
         y += 6;
         if (y > 270) { doc.addPage(); y = 10; }
       });
-    } else {
-      // Fallback for other report types or if properties are missing
+    } else if (type === 'verification' && data && 'verificationStats' in data) {
       doc.setFontSize(12);
-      doc.text("No detailed awards data available for this report type.", 10, y);
+      doc.text("Verification Stats:", 10, y); y += 8;
+      (data.verificationStats as any[]).forEach((stat) => {
+        doc.text(`${stat.overallStatus ?? stat.status}: ${stat._count}`, 12, y);
+        y += 6;
+      });
+      y += 4;
+      if ('avgProcessingTimes' in data) {
+        doc.text("Avg Processing Times (days):", 10, y); y += 8;
+        (data.avgProcessingTimes as any[]).forEach((row:any)=>{
+          doc.text(`${row.program}: ${row.avgProcessingDays.toFixed(1)}`, 12, y);
+          y+=6;
+        });
+      }
+    } else if (type === 'department' && data && 'departmentStats' in data) {
+      doc.setFontSize(12);
+      doc.text("Department Stats:", 10, y); y += 8;
+      (data.departmentStats as any[]).forEach((stat)=>{
+         doc.text(`${stat.department}: ${stat._count}`, 12, y); y +=6;
+      });
+      y+=4;
+      if ('programStats' in data) {
+        doc.text("Program Stats:",10,y); y+=8;
+        (data.programStats as any[]).forEach((stat)=>{ doc.text(`${stat.program}: ${stat._count}`, 12, y); y+=6; });
+      }
+    } else if (type === 'analytics' && data && 'userStats' in data) {
+      doc.setFontSize(12);
+      doc.text("User Stats:",10,y); y+=8;
+      (data.userStats as any[]).forEach((stat)=>{ doc.text(`${stat.role}: ${stat._count}`, 12, y); y+=6; });
+    } else {
+      doc.setFontSize(12);
+      doc.text("No data available for this report type.", 10, y);
     }
 
     const pdfBuffer = doc.output('arraybuffer');

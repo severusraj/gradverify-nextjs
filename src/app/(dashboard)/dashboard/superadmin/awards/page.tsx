@@ -110,9 +110,9 @@ export default function AwardsManagement() {
   }
 
   function getStatusBadge(status: string) {
-    if (status === "APPROVED") return <Badge className="bg-green-100 text-green-800 border-green-200">Approved</Badge>;
-    if (status === "REJECTED") return <Badge className="bg-red-100 text-red-800 border-red-200">Rejected</Badge>;
-    return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
+    if (status === "APPROVED") return <Badge className="bg-green-500/20 text-green-300 border border-green-500/30">Approved</Badge>;
+    if (status === "REJECTED") return <Badge className="bg-red-500/20 text-red-300 border border-red-500/30">Rejected</Badge>;
+    return <Badge className="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">Pending</Badge>;
   }
 
   async function handleViewAward(id: string, key: string) {
@@ -270,7 +270,7 @@ export default function AwardsManagement() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-700 border-green-300 hover:bg-green-50"
+                                className="text-green-400 border-green-500/30 hover:bg-green-500/20 hover:text-green-300"
                                 onClick={() => { setSelected(award); setAction("APPROVE"); }}
                               >
                                 <CheckCircle className="w-4 h-4 mr-1" /> Approve
@@ -278,7 +278,7 @@ export default function AwardsManagement() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-700 border-red-300 hover:bg-red-50"
+                                className="text-red-400 border-red-500/30 hover:bg-red-500/20 hover:text-red-300"
                                 onClick={() => { setSelected(award); setAction("REJECT"); }}
                               >
                                 <XCircle className="w-4 h-4 mr-1" /> Reject
@@ -319,7 +319,7 @@ export default function AwardsManagement() {
             <Button
               onClick={handleAction}
               disabled={submitting}
-              className={action === "APPROVE" ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"}
+              className={action === "APPROVE" ? "bg-green-600 text-white hover:bg-green-700 border-green-500" : "bg-red-600 text-white hover:bg-red-700 border-red-500"}
             >
               {submitting ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
               {action === "APPROVE" ? "Approve" : "Reject"}

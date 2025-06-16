@@ -74,25 +74,31 @@ export default function HomePage() {
 				<div className="absolute top-1/3 right-1/2 w-[260px] h-[260px] bg-gradient-to-br from-indigo-400/20 via-blue-300/20 to-blue-500/20 opacity-30 rounded-full blur-3xl z-0 animate-blob-move-4" style={blob4} />
 			</div>
 
-			{/* Floating particles with glow effect */}
-			<div className="absolute inset-0 overflow-hidden pointer-events-none">
-				<div className="particle-container">
-					{[...Array(20)].map((_, i) => (
-						<div
-							key={i}
-							className="absolute w-1 h-1 bg-blue-400 rounded-full animate-float"
-							style={{
+			{/* Floating particles with glow effect - render only after mount to avoid hydration mismatch */}
+			{mounted && (
+				<div className="absolute inset-0 overflow-hidden pointer-events-none">
+					<div className="particle-container">
+						{[...Array(20)].map((_, i) => {
+							// Generate random values once per render using Math.random()
+							const style = {
 								left: `${Math.random() * 100}%`,
 								top: `${Math.random() * 100}%`,
 								animationDelay: `${Math.random() * 5}s`,
 								animationDuration: `${5 + Math.random() * 5}s`,
 								opacity: 0.4 + Math.random() * 0.4,
 								boxShadow: '0 0 8px 2px rgba(59, 130, 246, 0.3)'
-							}}
-						/>
-					))}
+							} as React.CSSProperties;
+							return (
+								<div
+									key={i}
+									className="absolute w-1 h-1 bg-blue-400 rounded-full animate-float"
+									style={style}
+								/>
+							);
+						})}
+					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Main content with enhanced 3D effects */}
 			<main className="relative z-10 flex flex-col items-center justify-center w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-16 gap-8 sm:gap-10">
@@ -139,15 +145,6 @@ export default function HomePage() {
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
 							</svg>
 						</span>
-					</Link>
-					<Link 
-						href="/register" 
-						className={cn(
-							buttonVariants({ variant: "outline" }), 
-							"px-8 py-4 text-base sm:text-lg border-white/20 text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/40 hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-						)}
-					>
-						Create an Account
 					</Link>
 				</div>
 
