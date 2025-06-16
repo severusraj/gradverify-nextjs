@@ -11,7 +11,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="p-8 space-y-8">
-      <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
 
       {/* 1️⃣ Summary counts rendered on the server */}
       <Suspense fallback={<div className="p-6">Loading summary…</div>}>

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Resend } from "resend";
 import { getSessionUser, type AuthPayload } from "@/lib/auth/auth";
 import { getSignedDownloadUrl } from "@/lib/utils/s3";
+import MarkdownIt from "markdown-it";
 
 const invitationSchema = z.object({
   recipients: z.array(z.string()),
@@ -59,20 +60,34 @@ export async function createInvitation({ recipients, template, subject, eventDat
           select: { gradPhotoS3Key: true },
         });
         if (student?.gradPhotoS3Key) {
-          // Assume you have a function to get a signed URL, or use a public URL pattern
-          gradPhotoUrl = `https://your-s3-bucket-url/${student.gradPhotoS3Key}`;
+          try {
+            gradPhotoUrl = await getSignedDownloadUrl(student.gradPhotoS3Key);
+          } catch (err) {
+            console.error("Failed to sign grad photo url", err);
+          }
         }
       }
-      let html = template
+      let markdown = template
         .replace(/{{name}}/g, recipient.name)
         .replace(/{{eventDate}}/g, eventDate)
         .replace(/{{eventLocation}}/g, eventLocation)
-        .replace(/{{gradPhoto}}/g, gradPhotoUrl);
+        .replace(/{{gradPhoto}}/g, gradPhotoUrl)
+        .replace(/{{award}}/g, ""); // default empty award, handled below
+
+      // If recipient has award, replace placeholder
+      if ((recipient as any).award) {
+        markdown = markdown.replace(/{{award}}/g, (recipient as any).award);
+      }
+
+      // Convert markdown to HTML
+      const md = new MarkdownIt({ html: true, linkify: true, typographer: true });
+      const htmlContent = md.render(markdown);
+
       return resend.emails.send({
         from: "GradVerify <noreply@gc-gradverify.space>",
         to: recipient.email,
         subject,
-        html,
+        html: htmlContent,
       });
     });
     await Promise.all(emailPromises);
